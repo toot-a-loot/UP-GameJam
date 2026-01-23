@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://dp7lspl41wtxo"]
+
+[ext_resource type="Script" uid="uid://csrprf5bsc4x6" path="res://maze_world.gd" id="1_63eu4"]
+[ext_resource type="MeshLibrary" uid="uid://bxah33e5mgkm" path="res://grey_theme.tres" id="2_kpn3v"]
+
+[node name="Node3D" type="Node3D"]
+script = ExtResource("1_63eu4")
+
+[node name="GridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("2_kpn3v")
+
+[node name="Camera3D" type="Camera3D" parent="."]
