@@ -1,21 +1,19 @@
 [gd_scene load_steps=4 format=3 uid="uid://dfc8gqtn7kvte"]
 
 [ext_resource type="Script" uid="uid://baa7flndik5iy" path="res://entities/player/player.gd" id="1_abrql"]
-[ext_resource type="Texture2D" uid="uid://br0jn4va4ylg" path="res://icon.svg" id="1_symyc"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_sglur"]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_symyc"]
 
-[node name="Player" type="CharacterBody2D"]
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_abrql"]
+
+[node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_abrql")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("1_symyc")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_symyc")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_sglur")
-
-[node name="Camera2D" type="Camera2D" parent="."]
-enabled = false
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_abrql")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -24,10 +22,16 @@ visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -580.0
-offset_top = -324.0
-offset_right = -580.0
-offset_bottom = -324.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 color = Color(0, 0, 0, 1)
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Head"]
+
+[node name="SpotLight3D" type="SpotLight3D" parent="Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.7, 0)
