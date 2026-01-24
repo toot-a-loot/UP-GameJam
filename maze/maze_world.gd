@@ -116,7 +116,7 @@ func render_to_gridmap():
 func setup_astar():
 	astar = AStarGrid2D.new()
 	astar.region = Rect2i(0, 0, width, height)
-	astar.cell_size = Vector2(1, 1)
+	astar.cell_size = Vector2(2, 2)
 	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	astar.update()
 	
