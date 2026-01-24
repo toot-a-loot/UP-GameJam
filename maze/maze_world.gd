@@ -6,14 +6,12 @@ extends Node3D
 @export var removal_chance: float = 0.1
 
 @onready var grid_map: GridMap = $GridMap
-@onready var camera = $Camera3D
 
 var map_data: Array = []
 var astar: AStarGrid2D
 
 # TODO : CONSIDER CHANGING RANDOMIZATION ALGORITHM
 # TODO : IMPLEMENT WALL AND FLOOR MESH CODE IN render_to_gridmap()
-# TODO : REMOVE CAMERA SET UP. SHOULD BE FROM PLAYER.
 
 func _ready():
 	# Initialize map with all walls
@@ -35,9 +33,6 @@ func _ready():
 	
 	# Setup A* for optimal path
 	setup_astar()
-	
-	# Position camera to view the map. TESTING ONLY.
-	setup_overhead_camera()
 	
 	# Print the distance
 	var start = Vector2i(1, 1)
@@ -126,20 +121,3 @@ func setup_astar():
 		
 func get_optimal_path(start: Vector2i, end: Vector2i) -> PackedVector2Array:
 	return astar.get_id_path(start, end)
-
-func setup_overhead_camera():
-	# Maze center calculation
-	var center_x = width / 2.0
-	var center_z = height / 2.0
-	
-	# Position camera above the center
-	var cam_height = max(width, height) * 1.5
-	
-	camera.position = Vector3(center_x, cam_height, center_z)
-	
-	# Camera look down
-	camera.rotation_degrees = Vector3(-90, 0, 0)
-	
-	
-	
-	
