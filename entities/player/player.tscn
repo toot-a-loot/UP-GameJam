@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dfc8gqtn7kvte"]
+
+[ext_resource type="Texture2D" uid="uid://br0jn4va4ylg" path="res://icon.svg" id="1_symyc"]
+
+[node name="Player" type="CharacterBody2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_symyc")
