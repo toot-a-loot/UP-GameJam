@@ -6,6 +6,8 @@ extends Node3D
 @export var removal_chance: float = 0.1
 
 @onready var grid_map: GridMap = $GridMap
+# MUST ADD CAMERA3D AS CHILD NODE
+# @onready var camera = $Camera3D
 
 var map_data: Array = []
 var astar: AStarGrid2D
@@ -39,6 +41,9 @@ func _ready():
 	var end = Vector2i(width - 2, height - 2)
 	var path = get_optimal_path(start, end)
 	print("Optimal Path Length: ", path.size())
+	
+	# FOR TESTING
+	# setup_overhead_camera()
 
 func generate_recursive_backtracker():	
 	var current = Vector2i(1, 1)
@@ -121,3 +126,16 @@ func setup_astar():
 		
 func get_optimal_path(start: Vector2i, end: Vector2i) -> PackedVector2Array:
 	return astar.get_id_path(start, end)
+
+# FOR TESTING
+# func setup_overhead_camera():
+	# Calculate center of the maze
+	# var center_x = width / 2.0
+	# var center_z = height / 2.0
+	
+	# Position camera above the center
+	# var cam_height = max(width, height) * 1.5 
+	# camera.position = Vector3(center_x, cam_height, center_z)
+	
+	# Rotate camera to look straight down (-90 degrees around X axis)
+	# camera.rotation_degrees = Vector3(-90, 0, 0)
