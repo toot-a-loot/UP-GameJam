@@ -5,7 +5,7 @@ class_name Watcher
 
 #vision settings
 @export var vision_range: float = 15.0
-@export var vision_angle: float = 90.0
+@export var vision_angle: float = 45.0
 @export var alert_cooldown: float = 5.0
 @export var eyes_open_duration: float = 5.0
 @export var eyes_closed_duration: float = 2.0
@@ -98,7 +98,14 @@ func _check_player_visibility():
 	if angle > vision_angle:
 		_set_player_visible(false)
 		return
-		
+	raycast.look_at(player.global_position)
+	raycast.force_raycast_update()
+	
+	if raycast.is_colliding():
+		var collider = raycast.get_collider()
+		if collider != player:
+			_set_player_visible(false)#nay ga block
+			return
 	#player is within cone and visible, alert others
 	_set_player_visible(true)
 	_alert_other_enemies()

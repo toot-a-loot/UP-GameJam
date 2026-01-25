@@ -17,6 +17,10 @@ class_name Listener
 @onready var footstep_sound: AudioStreamPlayer3D = $FootstepSound
 
 #footstep
+@export var chase_speed: float = 7.0
+@export var walk_speed: float = 5.0
+@export var footstep_chase_sound: AudioStream
+@export var footstep_walk_sound: AudioStream
 @export var footstep_interval: float = 0.3
 
 #state
@@ -34,7 +38,7 @@ var pause_timer: float = 0.0
 func _ready():
 	super._ready()
 	
-	speed = 7.0
+	speed = walk_speed
 	can_move = true
 	
 	#initialize wandering
@@ -50,8 +54,10 @@ func _physics_process(delta):
 		_check_for_footsteps()
 		
 	if is_chasing:
+		speed = chase_speed
 		search_timer -= delta
 		if search_timer <= 0:#lost the player start wander
+			speed = walk_speed
 			is_chasing = false
 			_choose_new_wander_direction()
 			
@@ -67,8 +73,13 @@ func _physics_process(delta):
 	super._physics_process(delta)
 	
 func _play_footstep():
-	if footstep_sound and not footstep_sound.playing:
-		footstep_sound.play()
+	if footstep_sound:
+		var target_stream = footstep_chase_sound if is_chasing else footstep_walk_sound
+		if footstep_sound.stream != target_stream:
+			footstep_sound.stream = target_stream
+			footstep_sound.stop()
+		if not footstep_sound.playing:
+			footstep_sound.play()
 		
 func _check_for_footsteps():
 	if player == null:
@@ -114,7 +125,7 @@ func _idle_behavior(delta):
 	var direction = (next_pos - global_position).normalized()
 	direction.y = 0
 	velocity.x = direction.x * speed
-	velocity.y = direction.y * speed
+	velocity.z = direction.z * speed
 	
 func _choose_new_wander_direction():
 	var random_offset = Vector3(randf_range(-15,15),0,randf_range(-15,15))
@@ -132,9 +143,7 @@ func _on_hearing_area_body_exited(body: Node3D):
 		player_in_hearing_range = false
 		
 func _on_player_spotted(position: Vector3):
-	set_chase_target(position)
-	search_timer = memory_duration
-	is_chasing = true
+	pass
 	
 func can_hear_player() -> bool:
 	if player == null:
