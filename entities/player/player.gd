@@ -15,6 +15,10 @@ extends CharacterBody3D
 # true = Move Mode (Can't see well, can move)
 var is_covering_eyes = false 
 
+func _ready():
+	#register ang player sa enemy manager
+	EnemyManager.register_player(self)
+
 func _physics_process(delta):
 	# Apply gravity
 	if not is_on_floor():

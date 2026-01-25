@@ -15,6 +15,10 @@ run/main_scene="uid://rlfsd4xnr6ol"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+EnemyManager="*res://core/enemy_manager.gd"
+
 [input]
 
 cover_eyes={
