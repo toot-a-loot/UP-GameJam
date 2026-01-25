@@ -1,20 +1,26 @@
-[gd_scene load_steps=7 format=3 uid="uid://d0222bq63bvgp"]
+[gd_scene load_steps=9 format=3 uid="uid://d0222bq63bvgp"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_di2w7"]
-albedo_color = Color(0, 4.1503997, 4.1503997, 1)
+[ext_resource type="Texture2D" uid="uid://c2hhbra7juf05" path="res://assets/textures/Bricks_01-128x128.png" id="1_xiqpx"]
+[ext_resource type="Texture2D" uid="uid://bxhayrs3o6r7k" path="res://assets/textures/Tile_23-128x128.png" id="2_arjuj"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_arjuj"]
+albedo_texture = ExtResource("1_xiqpx")
+uv1_scale = Vector3(3, 3, 3)
 
 [sub_resource type="BoxMesh" id="BoxMesh_di2w7"]
-material = SubResource("StandardMaterial3D_di2w7")
-size = Vector3(2, 2, 2)
+material = SubResource("StandardMaterial3D_arjuj")
+size = Vector3(7, 15, 7)
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_xiqpx"]
 data = PackedVector3Array(-1, 1, 1, 1, 1, 1, -1, -1, 1, 1, 1, 1, 1, -1, 1, -1, -1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, 1, -1, 1, 1, 1, -1, 1, -1, -1, 1, -1, 1, -1, 1, -1, -1, 1, 1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, -1, -1, 1, 1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, -1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xiqpx"]
-albedo_color = Color(18.892157, 18.892157, 0, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ufmwh"]
+albedo_texture = ExtResource("2_arjuj")
+uv1_scale = Vector3(2, 2, 2)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_arjuj"]
-material = SubResource("StandardMaterial3D_xiqpx")
+material = SubResource("StandardMaterial3D_ufmwh")
+size = Vector2(7, 7)
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_ufmwh"]
 data = PackedVector3Array(1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, 1, -1, 0, -1, 1, 0, -1)
@@ -22,18 +28,21 @@ data = PackedVector3Array(1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, 1, -1, 0, -1, 1, 0
 [node name="Node3D" type="Node3D"]
 
 [node name="Wall" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0017690659, 0)
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0.0017690659, 0)
 mesh = SubResource("BoxMesh_di2w7")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="Wall"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall/StaticBody3D"]
+transform = Transform3D(3.5, 0, 0, 0, 3.5, 0, 0, 0, 3.5, 0, 3.5, 0)
 shape = SubResource("ConcavePolygonShape3D_xiqpx")
 
 [node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(7, 0, 0, 0, 7, 0, 0, 0, 7, 0, 0, 0)
 mesh = SubResource("PlaneMesh_arjuj")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="Floor"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor/StaticBody3D"]
+transform = Transform3D(3.5, 0, 0, 0, 3.5, 0, 0, 0, 3.5, 0, 0, 0)
 shape = SubResource("ConcavePolygonShape3D_ufmwh")
