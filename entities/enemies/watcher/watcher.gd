@@ -6,7 +6,7 @@ class_name Watcher
 #vision settings
 @export var vision_range: float = 15.0
 @export var vision_angle: float = 45.0
-@export var alert_cooldown: float = 5.0
+@export var alert_cooldown: float = 4
 @export var eyes_open_duration: float = 5.0
 @export var eyes_closed_duration: float = 2.0
 
@@ -34,11 +34,15 @@ func _ready():
 	#start with eyes open
 	eyes_open = true
 	eye_timer = eyes_open_duration
+	
+	raycast.collision_mask = 3
+	raycast.add_exception(self)
+	
 	#connect vision area signals
 	if vision_area:
 		vision_area.body_entered.connect(_on_vision_area_body_entered)
 		vision_area.body_exited.connect(_on_vision_area_body_exited)
-		
+	
 func _physics_process(delta):
 	super._physics_process(delta)
 	

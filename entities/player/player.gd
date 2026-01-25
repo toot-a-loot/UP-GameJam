@@ -22,9 +22,8 @@ func _ready():
 	# --- NEW: Capture Mouse ---
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
-	# register player to enemy manager
-	if get_tree().has_group("EnemyManager"): # Safety check
-		EnemyManager.register_player(self)
+	#ayaw ni e check gang kay maguba jud, matic lng e register ang player
+	EnemyManager.register_player(self)
 
 # --- NEW: Input Function for Mouse Look ---
 func _input(event):

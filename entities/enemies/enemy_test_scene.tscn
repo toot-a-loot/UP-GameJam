@@ -1,9 +1,9 @@
 [gd_scene load_steps=13 format=3 uid="uid://bm4bgoya3ratr"]
 
 [ext_resource type="PackedScene" uid="uid://dfc8gqtn7kvte" path="res://entities/player/player.tscn" id="1_player"]
-[ext_resource type="PackedScene" path="res://entities/enemies/watcher/watcher.tscn" id="2_watcher"]
-[ext_resource type="PackedScene" path="res://entities/enemies/listener/listener.tscn" id="3_listener"]
-[ext_resource type="PackedScene" path="res://entities/enemies/chaser/chaser.tscn" id="4_chaser"]
+[ext_resource type="PackedScene" uid="uid://creiyraf2vk0q" path="res://entities/enemies/watcher/watcher.tscn" id="2_watcher"]
+[ext_resource type="PackedScene" uid="uid://dnqg1ryy6bkjl" path="res://entities/enemies/listener/listener.tscn" id="3_listener"]
+[ext_resource type="PackedScene" uid="uid://gglcskpcdf6j" path="res://entities/enemies/chaser/chaser.tscn" id="4_chaser"]
 [ext_resource type="Script" uid="uid://bklyooukokg3h" path="res://entities/enemies/enemy_test_init.gd" id="5_init_script"]
 
 [sub_resource type="Environment" id="Environment_main"]

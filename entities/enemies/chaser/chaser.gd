@@ -8,7 +8,7 @@ class_name Chaser
 #chase settings
 @export var detection_radius: float = 8.0
 @export var give_up_distance: float = 15.0
-@export var give_up_time: float = 2.0
+@export var give_up_time: float = 8.0
 
 #patrol settings
 @export var patrol_points: Array[Vector3] = []
@@ -31,7 +31,7 @@ var footstep_timer: float = 0.0
 
 func _ready():
 	super._ready()
-	speed = 3.5
+	speed = 4.5
 	can_move = true
 	
 	#connect signals sa detect area
@@ -40,38 +40,34 @@ func _ready():
 		detection_area.body_exited.connect(_on_detection_area_body_exited)
 	
 func _physics_process(delta):
+	if player == null:
+		player = EnemyManager.get_player()
 	if player:
 		_check_player_proximity()
-		
-		if is_chasing: #stop chasing if layo na
-			var distance = global_position.distance_to(player.global_position)
-			if distance > give_up_distance:
-				is_chasing = false
-				print("too far stop chase")
-
+	
 	if is_chasing:
 		no_stimulus_timer += delta
+		
 		if no_stimulus_timer >= give_up_time:
 			is_chasing = false
-			print("lost track of player stop case")
-	
 	if is_waiting:
 		patrol_wait_timer -= delta
+		
 		if patrol_wait_timer <= 0:
 			is_waiting = false
 			_next_patrol_point()
-			
-	if velocity.length() > 0.1: #play footstep sound if moving
+	
+	if velocity.length() > 0.1:
 		footstep_timer -= delta
 		if footstep_timer <= 0:
 			_play_footstep()
-			footstep_timer =footstep_interval
-	else: #not moving
+			footstep_timer = footstep_interval
+	else:
 		if footstep_sound and footstep_sound.playing:
 			footstep_sound.stop()
 	
 	super._physics_process(delta)
-	
+		
 func _play_footstep():
 	if footstep_sound and not footstep_sound.playing:
 		footstep_sound.play()

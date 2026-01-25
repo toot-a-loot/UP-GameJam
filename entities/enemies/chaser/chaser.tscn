@@ -1,7 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://cchaser_enemy"]
+[gd_scene load_steps=7 format=3 uid="uid://gglcskpcdf6j"]
 
-[ext_resource type="Script" path="res://entities/enemies/chaser/chaser.gd" id="1_chaser"]
-[ext_resource type="AudioStream" path="res://assets/audio/Heavy footsteps.mp3" id="2_footstep_audio"]
+[ext_resource type="Script" uid="uid://jamsjk3myblm" path="res://entities/enemies/chaser/chaser.gd" id="1_chaser"]
+[ext_resource type="AudioStream" uid="uid://opgn43pelq3v" path="res://assets/audio/Heavy footsteps.mp3" id="2_footstep_audio"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -19,6 +19,7 @@ height = 1.8
 radius = 8.0
 
 [node name="Chaser" type="CharacterBody3D"]
+collision_mask = 3
 script = ExtResource("1_chaser")
 speed = 3.5
 
@@ -32,11 +33,9 @@ mesh = SubResource("CapsuleMesh_chaser")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.5
-target_desired_distance = 1.0
 
 [node name="DetectionArea" type="Area3D" parent="."]
-collision_layer = 0
-collision_mask = 1
+collision_mask = 2
 
 [node name="DetectionRadius" type="CollisionShape3D" parent="DetectionArea"]
 shape = SubResource("SphereShape3D_detection")

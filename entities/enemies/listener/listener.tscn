@@ -20,6 +20,7 @@ height = 1.8
 radius = 12.0
 
 [node name="Listener" type="CharacterBody3D"]
+collision_mask = 3
 script = ExtResource("1_listener")
 footstep_chase_sound = ExtResource("2_footstep_audio")
 footstep_walk_sound = ExtResource("3_j15k5")
@@ -36,7 +37,7 @@ mesh = SubResource("CapsuleMesh_listener")
 path_desired_distance = 0.5
 
 [node name="HearingArea" type="Area3D" parent="."]
-collision_layer = 0
+collision_mask = 2
 
 [node name="HearingRadius" type="CollisionShape3D" parent="HearingArea"]
 shape = SubResource("SphereShape3D_hearing")

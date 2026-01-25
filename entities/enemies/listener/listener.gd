@@ -17,8 +17,8 @@ class_name Listener
 @onready var footstep_sound: AudioStreamPlayer3D = $FootstepSound
 
 #footstep
-@export var chase_speed: float = 7.0
-@export var walk_speed: float = 5.0
+@export var chase_speed: float = 9.5
+@export var walk_speed: float = 6.0
 @export var footstep_chase_sound: AudioStream
 @export var footstep_walk_sound: AudioStream
 @export var footstep_interval: float = 0.3
@@ -50,6 +50,8 @@ func _ready():
 		hearing_area.body_exited.connect(_on_hearing_area_body_exited)
 		
 func _physics_process(delta):
+	if player == null:
+		player = EnemyManager.get_player()
 	if player:
 		_check_for_footsteps()
 		
@@ -89,7 +91,7 @@ func _check_for_footsteps():
 	if distance_to_player > hearing_radius:
 		return
 	
-	if player.is_covering_eyes and player.velocity.length() > 0.1:
+	if player.velocity.length() > 0.1:
 		_hear_player()
 		
 func _hear_player():
@@ -143,10 +145,13 @@ func _on_hearing_area_body_exited(body: Node3D):
 		player_in_hearing_range = false
 		
 func _on_player_spotted(position: Vector3):
-	pass
+	#receives alert from watcher dili kani nga monster mismo ang makakita
+	set_chase_target(position)
+	search_timer = memory_duration
+	is_chasing = true
 	
 func can_hear_player() -> bool:
 	if player == null:
 		return false
 	var distance = global_position.distance_to(player.global_position)
-	return distance <= hearing_radius and player.is_covering_eyes and player.velocity.length() > 0.1
+	return distance <= hearing_radius and player.velocity.length() > 0.1
