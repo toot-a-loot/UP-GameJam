@@ -1,12 +1,10 @@
 extends EnemyBase
 class_name Watcher
 
-#watcher enemy(ward), can see but cant move, alerts others if it spots player
-
 #vision settings
 @export var vision_range: float = 15.0
 @export var vision_angle: float = 45.0
-@export var alert_cooldown: float = 4
+@export var alert_interval: float = 0.5
 @export var eyes_open_duration: float = 5.0
 @export var eyes_closed_duration: float = 2.0
 
@@ -18,49 +16,46 @@ class_name Watcher
 
 #state
 var player_in_vision_area: bool = false
-var can_alert: bool = true
-var alert_timer: float = 0.0
 var eyes_open: bool = true
 var eye_timer: float = 0.0
 var player_currently_visible: bool = false
+var alert_timer: float = 0.0
+var audio_playing: bool = false
 
 func _ready():
 	super._ready()
 	
-	#watcher cannot move
 	can_move = false
 	speed = 0.0
 	
-	#start with eyes open
 	eyes_open = true
 	eye_timer = eyes_open_duration
 	
 	raycast.collision_mask = 3
 	raycast.add_exception(self)
 	
-	#connect vision area signals
 	if vision_area:
 		vision_area.body_entered.connect(_on_vision_area_body_entered)
 		vision_area.body_exited.connect(_on_vision_area_body_exited)
 	
+	if alert_sound:
+		alert_sound.finished.connect(_on_alert_sound_finished)
+	
 func _physics_process(delta):
 	super._physics_process(delta)
 	
-	if not can_alert:
+	# Update alert timer
+	if alert_timer > 0:
 		alert_timer -= delta
-		if alert_timer <= 0:
-			can_alert = true
-			
-	eye_timer -=delta
+	
+	eye_timer -= delta
 	if eye_timer <= 0:
 		if eyes_open:
-			#eye open cooldown, close eye
-			eyes_open=false
-			eye_timer= eyes_closed_duration
+			eyes_open = false
+			eye_timer = eyes_closed_duration
 			_set_vision_light(false)
 			_set_player_visible(false)
 		else:
-			#eyes closed cd, open eye
 			eyes_open = true
 			eye_timer = eyes_open_duration
 			_set_vision_light(true)
@@ -83,11 +78,9 @@ func _check_player_visibility():
 		_set_player_visible(false)
 		return
 		
-	# check if player is within cone vision
-	var forward = -global_transform.basis.z #forward direction
+	var forward = -global_transform.basis.z
 	var direction_to_player = to_player.normalized()
 	
-	#flatten to horizontal plane to check angle
 	forward.y = 0
 	if forward.length() > 0.001:
 		forward = forward.normalized()
@@ -98,40 +91,45 @@ func _check_player_visibility():
 	var dot = forward.dot(direction_to_player)
 	var angle = rad_to_deg(acos(clamp(dot, -1.0, 1.0)))
 	
-	#player must be within visoin cone angle
 	if angle > vision_angle:
 		_set_player_visible(false)
 		return
+		
 	raycast.look_at(player.global_position)
 	raycast.force_raycast_update()
 	
 	if raycast.is_colliding():
 		var collider = raycast.get_collider()
 		if collider != player:
-			_set_player_visible(false)#nay ga block
+			_set_player_visible(false)
 			return
-	#player is within cone and visible, alert others
+			
 	_set_player_visible(true)
-	_alert_other_enemies()
+	_alert_other_enemies() #call kada frame nga visible
 	
 func _set_player_visible(visible: bool):
-	if player_currently_visible and not visible: #player was visible niya dili na visible na out of range or clos eyes
+	if player_currently_visible and not visible:
+		#stop audio cause player not visible
 		if alert_sound and alert_sound.playing:
 			alert_sound.stop()
+			audio_playing = false
 	player_currently_visible = visible
 	
 func _alert_other_enemies():
-	if not can_alert or player == null:
+	if player == null:
 		return
-		
-	if alert_sound:
-		alert_sound.play()
-		
-	EnemyManager.alert_enemies(player.global_position)
 	
-	#start cd
-	can_alert = false
-	alert_timer = alert_cooldown
+	#start if not already playing
+	if alert_sound and not audio_playing:
+		alert_sound.play()
+		audio_playing = true
+	
+	if alert_timer <= 0:
+		EnemyManager.alert_enemies(player.global_position)
+		alert_timer = alert_interval
+
+func _on_alert_sound_finished():
+	audio_playing = false
 
 func _on_vision_area_body_entered(body: Node3D):
 	if body == player or body.name == "Player":

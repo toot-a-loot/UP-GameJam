@@ -151,10 +151,10 @@ func setup_navigation():
 	var cell_size_vector = grid_map.cell_size
 	var half_size = cell_size_vector.x / 2.0
 	
-	# Create one polygon per floor tile (your original approach)
+	# Create one polygon per floor tile
 	for x in range(width):
 		for z in range(height):
-			if map_data[x][z] == 0:  # Floor tile
+			if map_data[x][z] == 0:
 				var world_pos = grid_map.map_to_local(Vector3i(x, 0, z))
 				var nav_y = world_pos.y
 				
