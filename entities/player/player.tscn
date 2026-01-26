@@ -1,10 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://dfc8gqtn7kvte"]
+[gd_scene load_steps=5 format=3 uid="uid://dfc8gqtn7kvte"]
 
 [ext_resource type="Script" uid="uid://baa7flndik5iy" path="res://entities/player/player.gd" id="1_abrql"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_symyc"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_abrql"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_symyc"]
+font_size = 50
 
 [node name="Player" type="CharacterBody3D"]
 collision_layer = 2
@@ -28,6 +31,12 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 color = Color(0, 0, 0, 1)
+
+[node name="TimerLabel" type="Label" parent="CanvasLayer"]
+offset_right = 40.0
+offset_bottom = 23.0
+label_settings = SubResource("LabelSettings_symyc")
+horizontal_alignment = 1
 
 [node name="Head" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
