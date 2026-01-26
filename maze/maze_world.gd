@@ -61,6 +61,9 @@ func spawn_player():
 	player.global_position = world_pos
 	
 	print("Player spawned at: ", world_pos)
+	
+	if player.has_method("initialize_minimap"):
+		player.initialize_minimap(map_data, width, height)
 
 func generate_recursive_backtracker():	
 	var current = Vector2i(1, 1)
