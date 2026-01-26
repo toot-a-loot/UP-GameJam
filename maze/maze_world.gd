@@ -6,7 +6,7 @@ extends Node3D
 @export var removal_chance: float = 0.1
 
 # --- NEW: Assign your player.tscn here in the Inspector ---
-@export var player_scene: PackedScene 
+#@export var player_scene: PackedScene 
 
 @onready var grid_map: GridMap = $GridMap
 
@@ -28,6 +28,9 @@ func _ready():
 	# Add loops (multiple paths)
 	add_loops()
 	
+	# --- NEW: Carve an exit in the outer wall ---
+	create_exit()
+	
 	# Render to 3D
 	render_to_gridmap()
 	
@@ -35,35 +38,50 @@ func _ready():
 	setup_astar()
 	
 	# --- NEW: Spawn the player AFTER the maze exists ---
-	spawn_player()
+	#spawn_player()
 
-func spawn_player():
-	if not player_scene:
-		printerr("No Player Scene assigned in Inspector!")
-		return
+#func spawn_player():
+	#if not player_scene:
+		#printerr("No Player Scene assigned in Inspector!")
+		#return
+#
+	## We know (1, 1) is always the starting floor based on your generator logic
+	#var start_x = 1
+	#var start_y = 1
+	#
+	## 1. Instance the player
+	#var player = player_scene.instantiate()
+	#add_child(player)
+	#
+	## 2. Get the real world position of the grid cell (1, 1)
+	## map_to_local converts grid coordinates (Vector3i) to World Position (Vector3)
+	#var world_pos = grid_map.map_to_local(Vector3i(start_x, 0, start_y))
+	#
+	## 3. Apply position with a slight Y offset so they don't clip into the floor
+	## Your GridMap is at y=0, so we lift the player up slightly
+	#world_pos.y += 1.5 
+	#
+	#player.global_position = world_pos
+	#
+	#print("Player spawned at: ", world_pos)
 
-	# We know (1, 1) is always the starting floor based on your generator logic
-	var start_x = 1
-	var start_y = 1
+func create_exit():
+	# We want the exit to be on the opposite side of the start (1, 1).
+	# We search the bottom/right edges for a valid floor tile to connect to.
 	
-	# 1. Instance the player
-	var player = player_scene.instantiate()
-	add_child(player)
-	
-	# 2. Get the real world position of the grid cell (1, 1)
-	# map_to_local converts grid coordinates (Vector3i) to World Position (Vector3)
-	var world_pos = grid_map.map_to_local(Vector3i(start_x, 0, start_y))
-	
-	# 3. Apply position with a slight Y offset so they don't clip into the floor
-	# Your GridMap is at y=0, so we lift the player up slightly
-	world_pos.y += 1.5 
-	
-	player.global_position = world_pos
-	
-	print("Player spawned at: ", world_pos)
-	
-	if player.has_method("initialize_minimap"):
-		player.initialize_minimap(map_data, width, height)
+	# Try to find a floor on the far right column (width - 2)
+	for y in range(height - 2, 0, -1):
+		if map_data[width - 2][y] == 0:
+			map_data[width - 1][y] = 0 # Knock down the rightmost wall
+			print("Exit created at: ", Vector2i(width - 1, y))
+			return
+
+	# Fallback: Try to find a floor on the bottom row (height - 2)
+	for x in range(width - 2, 0, -1):
+		if map_data[x][height - 2] == 0:
+			map_data[x][height - 1] = 0 # Knock down the bottom wall
+			print("Exit created at: ", Vector2i(x, height - 1))
+			return
 
 func generate_recursive_backtracker():	
 	var current = Vector2i(1, 1)
