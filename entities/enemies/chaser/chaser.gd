@@ -98,7 +98,7 @@ func _start_chase():
 	
 	# Only set target when starting chase, not every frame
 	if not is_chasing:
-		set_chase_target(player.global_position)
+		set_chase_target(player.global_position, true)
 		
 	no_stimulus_timer = 0.0
 	is_chasing = true
@@ -160,6 +160,6 @@ func _on_detection_area_body_exited(body: Node3D):
 		print("Chaser: Player left detection range")
 		
 func _on_player_spotted(position: Vector3):
-	set_chase_target(position)
+	set_chase_target(position,false)
 	no_stimulus_timer = 0.0
 	is_chasing = true

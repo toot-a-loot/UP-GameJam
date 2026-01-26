@@ -17,7 +17,7 @@ class_name Listener
 @onready var footstep_sound: AudioStreamPlayer3D = $FootstepSound
 
 #footstep
-@export var chase_speed: float = 9.5
+@export var chase_speed: float = 13.0
 @export var walk_speed: float = 6.0
 @export var footstep_chase_sound: AudioStream
 @export var footstep_walk_sound: AudioStream
@@ -111,10 +111,8 @@ func _hear_player():
 		
 	var heard_position = player.global_position
 	
-		
-	set_chase_target(heard_position)
+	set_chase_target(heard_position, true)
 	search_timer = memory_duration
-	
 	is_chasing = true
 	
 func _idle_behavior(delta):
@@ -167,7 +165,7 @@ func _on_hearing_area_body_exited(body: Node3D):
 func _on_player_spotted(position: Vector3):
 	#receives alert from watcher
 	print("Listener: Received alert from Watcher at ", position)
-	set_chase_target(position)
+	set_chase_target(position, false)
 	search_timer = memory_duration
 	is_chasing = true
 	
