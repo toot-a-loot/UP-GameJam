@@ -64,10 +64,3 @@ horizontal_alignment = 1
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
-
-[node name="OmniLight3D" type="OmniLight3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.7, 0)
-light_color = Color(0.8965125, 0.88536936, 0.76095927, 1)
-light_energy = 9.0
-light_volumetric_fog_energy = 3.0
-omni_attenuation = 3.0

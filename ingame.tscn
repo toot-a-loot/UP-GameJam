@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://bcvlx6vixaf87"]
+[gd_scene load_steps=13 format=3 uid="uid://bcvlx6vixaf87"]
 
 [ext_resource type="Script" uid="uid://23x7pb3jeuci" path="res://entities/enemies/enemy_spawner.gd" id="2_kgmhh"]
 [ext_resource type="PackedScene" uid="uid://dp7lspl41wtxo" path="res://maze/MazeWorld.tscn" id="2_p0uuu"]
@@ -6,8 +6,43 @@
 [ext_resource type="PackedScene" uid="uid://creiyraf2vk0q" path="res://entities/enemies/watcher/watcher.tscn" id="3_pu7co"]
 [ext_resource type="PackedScene" uid="uid://dnqg1ryy6bkjl" path="res://entities/enemies/listener/listener.tscn" id="4_ic5ef"]
 [ext_resource type="PackedScene" uid="uid://gglcskpcdf6j" path="res://entities/enemies/chaser/chaser.tscn" id="5_8g0if"]
+[ext_resource type="Shader" uid="uid://dwhqqyst7tpfr" path="res://post_processing.gdshader" id="7_ic5ef"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ic5ef"]
+sky_top_color = Color(0.23394024, 0.2857057, 0.35467437, 1)
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+energy_multiplier = 1.51
+
+[sub_resource type="Sky" id="Sky_8g0if"]
+sky_material = SubResource("ProceduralSkyMaterial_ic5ef")
+
+[sub_resource type="Environment" id="Environment_ooucj"]
+background_mode = 2
+background_energy_multiplier = 0.7
+sky = SubResource("Sky_8g0if")
+sky_custom_fov = 45.0
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8g0if"]
+render_priority = 0
+shader = ExtResource("7_ic5ef")
+shader_parameter/dither_amount = 0.499999988824
+
+[sub_resource type="QuadMesh" id="QuadMesh_ooucj"]
+flip_faces = true
+size = Vector2(2, 2)
 
 [node name="Ingame" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+light_color = Color(0.32544088, 0.3254409, 0.32544088, 1)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_ooucj")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 34.269882, 0)
@@ -22,3 +57,8 @@ script = ExtResource("2_kgmhh")
 watcher_scene = ExtResource("3_pu7co")
 listener_scene = ExtResource("4_ic5ef")
 chaser_scene = ExtResource("5_8g0if")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("ShaderMaterial_8g0if")
+extra_cull_margin = 16384.0
+mesh = SubResource("QuadMesh_ooucj")

@@ -16,7 +16,6 @@ var is_game_active = true
 # Nodes
 @onready var head = $Head
 @onready var camera = $Head/Camera3D
-@onready var flashlight = $Head/OmniLight3D
 @onready var blindfold = $CanvasLayer/ColorRect
 # MAP NODES
 @onready var minimap_container = $CanvasLayer/MinimapContainer
@@ -117,13 +116,11 @@ func set_state_moving():
 	# Darken screen, allow flashlight
 	blindfold.visible = true
 	blindfold.color.a = 0.3 
-	flashlight.visible = true 
 
 func set_state_sight():
 	# Crystal clear vision
 	blindfold.visible = false
 	blindfold.color.a = 0.0
-	flashlight.visible = true
 
 func initialize_minimap(map_data: Array, w: int, h: int):
 	map_width_cells = float(w)
