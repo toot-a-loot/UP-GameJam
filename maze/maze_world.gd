@@ -34,6 +34,8 @@ func _ready():
 	# Setup A* for optimal path
 	setup_astar()
 	
+	#setup navigation para sa monsters
+	setup_navigation()
 	# --- NEW: Spawn the player AFTER the maze exists ---
 	spawn_player()
 
@@ -64,6 +66,7 @@ func spawn_player():
 	
 	if player.has_method("initialize_minimap"):
 		player.initialize_minimap(map_data, width, height)
+	
 
 func generate_recursive_backtracker():	
 	var current = Vector2i(1, 1)
@@ -131,3 +134,47 @@ func setup_astar():
 
 func get_optimal_path(start: Vector2i, end: Vector2i) -> PackedVector2Array:
 	return astar.get_id_path(start, end)
+
+func setup_navigation():
+	var nav_region = NavigationRegion3D.new()
+	add_child(nav_region)
+	
+	var nav_mesh = NavigationMesh.new()
+	nav_mesh.cell_size = 0.5
+	nav_mesh.agent_height = 2.0
+	nav_mesh.agent_radius = 0.5
+	
+	#manually create navigation polygons for each floor tile kay guba ang auto
+	var vertices = PackedVector3Array()
+	var polygons = []
+	
+	# Get the cell size from GridMap
+	var cell_size_vector = grid_map.cell_size
+	var half_size = cell_size_vector.x / 2.0
+	
+	for x in range(width):
+		for z in range(height):
+			if map_data[x][z] == 0:  # Floor tile
+				# Get the world position of this floor tile
+				var world_pos = grid_map.map_to_local(Vector3i(x, 0, z))
+				
+				# Use the actual Y position from GridMap
+				var nav_y = world_pos.y
+				
+				# Create a square polygon for this floor tile
+				var base_idx = vertices.size()
+				vertices.append(Vector3(world_pos.x - half_size, nav_y, world_pos.z - half_size))
+				vertices.append(Vector3(world_pos.x + half_size, nav_y, world_pos.z - half_size))
+				vertices.append(Vector3(world_pos.x + half_size, nav_y, world_pos.z + half_size))
+				vertices.append(Vector3(world_pos.x - half_size, nav_y, world_pos.z + half_size))
+				
+				# Add polygon indices
+				polygons.append(PackedInt32Array([base_idx, base_idx + 1, base_idx + 2, base_idx + 3]))
+	
+	# Set the navigation mesh data
+	nav_mesh.vertices = vertices
+	nav_mesh.polygons = polygons
+	
+	nav_region.navigation_mesh = nav_mesh
+	
+	print("Navigation mesh created with %d polygons at Y = %.1f" % [polygons.size(), vertices[0].y if vertices.size() > 0 else 0])

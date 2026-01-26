@@ -1,11 +1,11 @@
 extends EnemyBase
 class_name Listener
 
-# listener enemy can hear but cannot see, faster than layer, detects if player is moving(footsteps), wanders around when not chasing
+# listener enemy can hear but cannot see, faster than player, detects if player is moving(footsteps), wanders around when not chasing
 
 #hearing settings
 @export var hearing_radius: float = 12.0
-@export var memory_duration: float = 5.0#how long to chase last known location
+@export var memory_duration: float = 5.0 #how long to chase last known location
 
 # wandering settings
 @export var wander_direction_change_time: float = 3.0
@@ -32,7 +32,7 @@ var footstep_timer: float = 0.0
 #wandering
 var wander_direction: Vector3 = Vector3.ZERO
 var wander_timer: float = 0.0
-var is_paused: bool =false
+var is_paused: bool = false
 var pause_timer: float = 0.0
 
 func _ready():
@@ -41,6 +41,9 @@ func _ready():
 	speed = walk_speed
 	can_move = true
 	
+	print("Listener: Ready at position ", global_position)
+	print("Listener: can_move = ", can_move, " speed = ", speed)
+	
 	#initialize wandering
 	_choose_new_wander_direction()
 	
@@ -48,17 +51,23 @@ func _ready():
 	if hearing_area:
 		hearing_area.body_entered.connect(_on_hearing_area_body_entered)
 		hearing_area.body_exited.connect(_on_hearing_area_body_exited)
+	else:
+		printerr("Listener: No HearingArea found!")
 		
 func _physics_process(delta):
 	if player == null:
 		player = EnemyManager.get_player()
+		if player:
+			print("Listener: Found player at ", player.global_position)
+			
 	if player:
 		_check_for_footsteps()
 		
 	if is_chasing:
 		speed = chase_speed
 		search_timer -= delta
-		if search_timer <= 0:#lost the player start wander
+		if search_timer <= 0: #lost the player start wander
+			print("Listener: Lost player, resuming wander")
 			speed = walk_speed
 			is_chasing = false
 			_choose_new_wander_direction()
@@ -88,9 +97,11 @@ func _check_for_footsteps():
 		return
 		
 	var distance_to_player = global_position.distance_to(player.global_position)
+	
 	if distance_to_player > hearing_radius:
 		return
 	
+	# Check if player is moving
 	if player.velocity.length() > 0.1:
 		_hear_player()
 		
@@ -100,12 +111,18 @@ func _hear_player():
 		
 	var heard_position = player.global_position
 	
+		
 	set_chase_target(heard_position)
 	search_timer = memory_duration
 	
 	is_chasing = true
 	
 func _idle_behavior(delta):
+	if not navigation_ready:
+		velocity.x = 0
+		velocity.z = 0
+		return
+		
 	if is_paused:
 		pause_timer -= delta
 		velocity.x = 0
@@ -130,22 +147,26 @@ func _idle_behavior(delta):
 	velocity.z = direction.z * speed
 	
 func _choose_new_wander_direction():
-	var random_offset = Vector3(randf_range(-15,15),0,randf_range(-15,15))
+	var random_offset = Vector3(randf_range(-20, 20), 0, randf_range(-20, 20))
 	var target_pos = global_position + random_offset
 	
 	nav_agent.target_position = target_pos
 	is_paused = false
 		
 func _on_hearing_area_body_entered(body: Node3D):
-	if body == player:
+	print("Listener: Body entered hearing area: ", body.name)
+	if body == player or body.name == "Player":
 		player_in_hearing_range = true
+		print("Listener: Player in hearing range!")
 		
 func _on_hearing_area_body_exited(body: Node3D):
-	if body == player:
+	if body == player or body.name == "Player":
 		player_in_hearing_range = false
+		print("Listener: Player left hearing range")
 		
 func _on_player_spotted(position: Vector3):
-	#receives alert from watcher dili kani nga monster mismo ang makakita
+	#receives alert from watcher
+	print("Listener: Received alert from Watcher at ", position)
 	set_chase_target(position)
 	search_timer = memory_duration
 	is_chasing = true

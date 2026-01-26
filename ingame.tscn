@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://bcvlx6vixaf87"]
+[gd_scene load_steps=6 format=3 uid="uid://bcvlx6vixaf87"]
 
+[ext_resource type="Script" uid="uid://23x7pb3jeuci" path="res://entities/enemies/enemy_spawner.gd" id="2_kgmhh"]
 [ext_resource type="PackedScene" uid="uid://dp7lspl41wtxo" path="res://maze/MazeWorld.tscn" id="2_p0uuu"]
+[ext_resource type="PackedScene" uid="uid://creiyraf2vk0q" path="res://entities/enemies/watcher/watcher.tscn" id="3_pu7co"]
+[ext_resource type="PackedScene" uid="uid://dnqg1ryy6bkjl" path="res://entities/enemies/listener/listener.tscn" id="4_ic5ef"]
+[ext_resource type="PackedScene" uid="uid://gglcskpcdf6j" path="res://entities/enemies/chaser/chaser.tscn" id="5_8g0if"]
 
 [node name="Ingame" type="Node3D"]
 
@@ -10,3 +14,9 @@ light_color = Color(0.9934729, 0.7026936, 0.7296937, 1)
 light_energy = 7.045
 
 [node name="MazeWorld" parent="." instance=ExtResource("2_p0uuu")]
+
+[node name="EnemySpawner" type="Node" parent="MazeWorld"]
+script = ExtResource("2_kgmhh")
+watcher_scene = ExtResource("3_pu7co")
+listener_scene = ExtResource("4_ic5ef")
+chaser_scene = ExtResource("5_8g0if")
