@@ -1,3 +1,6 @@
+[gd_scene load_steps=3 format=3 uid="uid://bcvlx6vixaf87"]
+
+[ext_resource type="Script" uid="uid://bjgbsxwben4wi" path="res://creative_mode.gd" id="2_62bee"]
 [gd_scene load_steps=6 format=3 uid="uid://bcvlx6vixaf87"]
 
 [ext_resource type="Script" uid="uid://23x7pb3jeuci" path="res://entities/enemies/enemy_spawner.gd" id="2_kgmhh"]
@@ -15,6 +18,8 @@ light_energy = 7.045
 
 [node name="MazeWorld" parent="." instance=ExtResource("2_p0uuu")]
 
+[node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("2_62bee")
 [node name="EnemySpawner" type="Node" parent="MazeWorld"]
 script = ExtResource("2_kgmhh")
 watcher_scene = ExtResource("3_pu7co")
