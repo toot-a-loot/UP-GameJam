@@ -23,7 +23,8 @@ background_energy_multiplier = 0.7
 sky = SubResource("Sky_8g0if")
 sky_custom_fov = 45.0
 tonemap_mode = 2
-glow_enabled = true
+fog_enabled = true
+fog_light_energy = 0.5
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8g0if"]
 render_priority = 0
@@ -35,11 +36,6 @@ flip_faces = true
 size = Vector2(2, 2)
 
 [node name="Ingame" type="Node3D"]
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
-light_color = Color(0.32544088, 0.3254409, 0.32544088, 1)
-shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_ooucj")

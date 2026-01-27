@@ -1,0 +1,170 @@
+[gd_scene load_steps=13 format=3 uid="uid://f2ivvhcd2mos"]
+
+[ext_resource type="Script" uid="uid://b8hqqti6jdc8c" path="res://ui/main_menu.gd" id="1_8v85u"]
+[ext_resource type="Script" uid="uid://bor2d5txxv10m" path="res://ui/main_menu_camera.gd" id="1_x262b"]
+[ext_resource type="PackedScene" uid="uid://bbl15t1j4p6vk" path="res://assets/models/player_models/spyke.tscn" id="2_rn8js"]
+[ext_resource type="Shader" uid="uid://dwhqqyst7tpfr" path="res://post_processing.gdshader" id="3_8v85u"]
+[ext_resource type="MeshLibrary" uid="uid://bxah33e5mgkm" path="res://assets/models/WallAndFloor.tres" id="3_nmrkx"]
+[ext_resource type="PackedScene" uid="uid://1ltd4vjg1u6c" path="res://assets/models/player_models/dwell.tscn" id="3_uvwf2"]
+[ext_resource type="PackedScene" uid="uid://cgwhbrevjmkp8" path="res://assets/models/player_models/jadd.tscn" id="4_youui"]
+[ext_resource type="PackedScene" uid="uid://b34gpyfxswijj" path="res://assets/models/player_models/mjartt.tscn" id="5_58pe3"]
+[ext_resource type="PackedScene" uid="uid://b0sjapxhxhqvq" path="res://assets/models/player_models/sanchovich.tscn" id="6_g6r01"]
+
+[sub_resource type="Environment" id="Environment_nmrkx"]
+background_energy_multiplier = 3.0
+fog_enabled = true
+fog_light_color = Color(0.52814776, 0.5534628, 0.5801379, 1)
+fog_light_energy = 0.4
+fog_density = 0.05
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x262b"]
+render_priority = 0
+shader = ExtResource("3_8v85u")
+shader_parameter/dither_amount = 0.0999999977648
+
+[sub_resource type="QuadMesh" id="QuadMesh_qo3sn"]
+flip_faces = true
+size = Vector2(2, 2)
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_nmrkx")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 2.6, 2)
+fov = 90.0
+script = ExtResource("1_x262b")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+script = ExtResource("1_8v85u")
+character_scenes = Array[PackedScene]([ExtResource("2_rn8js"), ExtResource("3_uvwf2"), ExtResource("4_youui"), ExtResource("5_58pe3"), ExtResource("6_g6r01")])
+character_names = Array[String](["Matt", "John", "Plug", "Josh", "Karol"])
+character_descs = Array[String](["Basic guy", "Basic girl", "Combat ready", "dsa", "asd"])
+
+[node name="MainMenu" type="Control" parent="UI"]
+anchors_preset = 0
+offset_left = 64.0
+offset_top = 890.0
+offset_right = 445.0
+offset_bottom = 890.0
+metadata/_edit_use_anchors_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/MainMenu"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -179.0
+offset_right = 381.0
+grow_vertical = 0
+
+[node name="StartButton" type="Button" parent="UI/MainMenu/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "Start"
+
+[node name="CharacterButton" type="Button" parent="UI/MainMenu/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "Character"
+
+[node name="ExitButton" type="Button" parent="UI/MainMenu/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "Exit"
+
+[node name="CharacterMenu" type="Control" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackButton" type="Button" parent="UI/CharacterMenu"]
+layout_mode = 1
+offset_left = 55.0
+offset_top = 57.0
+offset_right = 126.0
+offset_bottom = 88.0
+theme_override_font_sizes/font_size = 35
+text = "Go Back"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/CharacterMenu"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -85.5
+offset_top = -25.0
+offset_right = 85.5
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PrevButton" type="Button" parent="UI/CharacterMenu/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "<"
+
+[node name="InfoBox" type="VBoxContainer" parent="UI/CharacterMenu/HBoxContainer"]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="UI/CharacterMenu/HBoxContainer/InfoBox"]
+layout_mode = 2
+
+[node name="Description" type="Label" parent="UI/CharacterMenu/HBoxContainer/InfoBox"]
+layout_mode = 2
+
+[node name="NextButton" type="Button" parent="UI/CharacterMenu/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = ">"
+
+[node name="SelectButton" type="Button" parent="UI/CharacterMenu"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -27.0
+offset_top = -158.0
+offset_right = 27.0
+offset_bottom = -127.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 35
+text = "Select"
+
+[node name="CharacterPivot" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.5, 0.77)
+
+[node name="GridMap" type="GridMap" parent="."]
+mesh_library = ExtResource("3_nmrkx")
+cell_size = Vector3(7, 1, 7)
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(0, 0, 1048577, 0, 65535, 1048577, 65535, 65535, 1048577, 65535, 0, 1048577, 0, 65534, 1048577, 65535, 65534, 1048576, 65534, 65534, 1048576, 65534, 65535, 1048576, 1, 65534, 1048576, 1, 65535, 1048577, 2, 65535, 1048576, 0, 65533, 1048577, 0, 65532, 1048577, 0, 65531, 1048577, 0, 65530, 1048577, 0, 65529, 1048577, 1, 65533, 1441792, 1, 65532, 1441792, 1, 65531, 1441792, 1, 65530, 1441792, 1, 65529, 1441792, 65535, 65533, 1441792, 65535, 65532, 1441792, 65535, 65531, 1441792, 65535, 65530, 1441792, 65535, 65529, 1441792, 1, 65528, 1441792, 65535, 65528, 1441792, 1, 65527, 1441792, 65535, 65527, 1441792, 0, 65528, 1441793, 0, 65527, 1441793, 1, 0, 1441793, 2, 0, 1441793, 65534, 0, 1441793)
+}
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.4457012, 0, -0.2266064, 0, 0.5, 0, 0.2266064, 0, 0.4457012, 1.5915649, 0.49900305, -0.9232552)
+material_override = SubResource("ShaderMaterial_x262b")
+extra_cull_margin = 16384.0
+mesh = SubResource("QuadMesh_qo3sn")
+skeleton = NodePath("")
+
+[connection signal="pressed" from="UI/MainMenu/VBoxContainer/StartButton" to="UI" method="_on_start_button_pressed"]
+[connection signal="pressed" from="UI/MainMenu/VBoxContainer/CharacterButton" to="UI" method="_on_character_button_pressed"]
+[connection signal="pressed" from="UI/MainMenu/VBoxContainer/ExitButton" to="UI" method="_on_exit_button_pressed"]

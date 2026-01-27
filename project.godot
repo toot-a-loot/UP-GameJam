@@ -67,7 +67,7 @@ anti_aliasing/screen_space_roughness_limiter/enabled=false
 
 resolution={
 "type": "vec2",
-"value": Vector2(320, 240)
+"value": Vector2(640, 480)
 }
 color_depth={
 "type": "float",
