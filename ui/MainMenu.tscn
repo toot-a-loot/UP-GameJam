@@ -14,7 +14,7 @@
 background_energy_multiplier = 3.0
 fog_enabled = true
 fog_light_color = Color(0.52814776, 0.5534628, 0.5801379, 1)
-fog_light_energy = 0.4
+fog_light_energy = 0.55
 fog_density = 0.05
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x262b"]
@@ -47,7 +47,7 @@ size_flags_horizontal = 4
 script = ExtResource("1_8v85u")
 character_scenes = Array[PackedScene]([ExtResource("2_rn8js"), ExtResource("3_uvwf2"), ExtResource("4_youui"), ExtResource("5_58pe3"), ExtResource("6_g6r01")])
 character_names = Array[String](["Matt", "John", "Plug", "Josh", "Karol"])
-character_descs = Array[String](["Basic guy", "Basic girl", "Combat ready", "dsa", "asd"])
+character_descs = Array[String](["Strong guy", "Combat ready", "Nerd", "Mentally challenged", "Woman"])
 
 [node name="MainMenu" type="Control" parent="UI"]
 anchors_preset = 0
@@ -155,8 +155,9 @@ mesh_library = ExtResource("3_nmrkx")
 cell_size = Vector3(7, 1, 7)
 cell_center_y = false
 data = {
-"cells": PackedInt32Array(0, 0, 1048577, 0, 65535, 1048577, 65535, 65535, 1048577, 65535, 0, 1048577, 0, 65534, 1048577, 65535, 65534, 1048576, 65534, 65534, 1048576, 65534, 65535, 1048576, 1, 65534, 1048576, 1, 65535, 1048577, 2, 65535, 1048576, 0, 65533, 1048577, 0, 65532, 1048577, 0, 65531, 1048577, 0, 65530, 1048577, 0, 65529, 1048577, 1, 65533, 1441792, 1, 65532, 1441792, 1, 65531, 1441792, 1, 65530, 1441792, 1, 65529, 1441792, 65535, 65533, 1441792, 65535, 65532, 1441792, 65535, 65531, 1441792, 65535, 65530, 1441792, 65535, 65529, 1441792, 1, 65528, 1441792, 65535, 65528, 1441792, 1, 65527, 1441792, 65535, 65527, 1441792, 0, 65528, 1441793, 0, 65527, 1441793, 1, 0, 1441793, 2, 0, 1441793, 65534, 0, 1441793)
+"cells": PackedInt32Array(0, 0, 1048577, 0, 65535, 1048577, 65535, 65535, 1048577, 65535, 0, 1048577, 0, 65534, 1048577, 65535, 65534, 1048576, 65534, 65534, 1048576, 65534, 65535, 1048576, 1, 65534, 1048576, 1, 65535, 1048577, 2, 65535, 1048576, 0, 65533, 1048577, 0, 65532, 1048577, 0, 65531, 1048577, 0, 65530, 1048577, 0, 65529, 1048577, 1, 65533, 1441792, 1, 65532, 1441792, 1, 65531, 1441792, 1, 65530, 1441792, 1, 65529, 1441792, 65535, 65533, 1441792, 65535, 65532, 1441792, 65535, 65531, 1441792, 65535, 65530, 1441792, 65535, 65529, 1441792, 1, 65528, 1441792, 65535, 65528, 1441792, 1, 65527, 1441792, 65535, 65527, 1441792, 0, 65528, 1441793, 0, 65527, 1441793, 1, 0, 1441793, 2, 0, 1441793, 65534, 0, 1441793, 524287, 65535, 655364, 524287, 0, 655364, 458752, 0, 655364, 458752, 65535, 655364, 458753, 0, 655364, 458753, 65535, 655364, 458752, 65534, 655364, 458752, 65533, 655364, 458752, 65532, 655364, 458752, 65531, 655364, 458752, 65530, 655364, 458752, 65529, 655364, 458752, 65528, 655364, 458752, 65527, 655364, 458754, 0, 4, 524286, 0, 4)
 }
+metadata/_editor_floor_ = Vector3(0, 7, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.4457012, 0, -0.2266064, 0, 0.5, 0, 0.2266064, 0, 0.4457012, 1.5915649, 0.49900305, -0.9232552)
@@ -171,3 +172,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1, 0)
 [connection signal="pressed" from="UI/MainMenu/VBoxContainer/StartButton" to="UI" method="_on_start_button_pressed"]
 [connection signal="pressed" from="UI/MainMenu/VBoxContainer/CharacterButton" to="UI" method="_on_character_button_pressed"]
 [connection signal="pressed" from="UI/MainMenu/VBoxContainer/ExitButton" to="UI" method="_on_exit_button_pressed"]
+[connection signal="pressed" from="UI/CharacterMenu/BackButton" to="UI" method="_on_back_button_pressed"]
+[connection signal="pressed" from="UI/CharacterMenu/HBoxContainer/PrevButton" to="UI" method="_on_prev_button_pressed"]
+[connection signal="pressed" from="UI/CharacterMenu/HBoxContainer/NextButton" to="UI" method="_on_next_button_pressed"]
+[connection signal="pressed" from="UI/CharacterMenu/SelectButton" to="UI" method="_on_select_button_pressed"]

@@ -25,12 +25,13 @@ var model_rotation_main = Vector3(0.0,-27,0.0)
 
 # 2. Character Select View (x=7 area)
 var cam_pos_char = Vector3(7.0, 2.6, 2.0)
-var model_pos_char = Vector3(7.0, 1.0, 0.0) # Where model stands in Selection
+var model_pos_char = Vector3(7.0, 1.0, 0.0) 
+var model_rotation_char = Vector3(0.0, 0.0,0.0)
 
 # --- Data ---
 @export var character_scenes: Array[PackedScene]
-@export var character_names: Array[String]
-@export var character_descs: Array[String]
+@export var character_names: Array[String] = ["John", "Jane", "Soldier"]
+@export var character_descs: Array[String] = ["Basic guy", "Basic girl", "Combat ready"]
 
 var current_index: int = 0
 
@@ -54,6 +55,7 @@ func switch_to_char_menu():
 	tween_transition(camera_3d, "start_position", cam_pos_char)
 	# Move Model to X=7
 	tween_transition(character_pivot, "position", model_pos_char)
+	tween_transition(character_pivot, "rotation", model_rotation_char)
 	
 	# Swap UI
 	main_menu_ui.visible = false
@@ -64,7 +66,7 @@ func switch_to_main_menu():
 	tween_transition(camera_3d, "start_position", cam_pos_main)
 	# Move Model back (It stays selected!)
 	tween_transition(character_pivot, "position", model_pos_main)
-	
+	tween_transition(character_pivot, "rotation", (model_rotation_main + Vector3(0.0,20.0,0.0)))
 	# Swap UI
 	char_menu_ui.visible = false
 	main_menu_ui.visible = true
@@ -86,18 +88,18 @@ func _on_exit_button_pressed() -> void:
 	get_tree().quit()
 
 # Character Menu Buttons
-func _on_prev_pressed() -> void: # Connect BtnPrev
+func _on_prev_button_pressed() -> void: # Connect BtnPrev
 	current_index = (current_index - 1 + character_scenes.size()) % character_scenes.size()
 	update_character_model()
 
-func _on_next_pressed() -> void: # Connect BtnNext
+func _on_next_button_pressed() -> void: # Connect BtnNext
 	current_index = (current_index + 1) % character_scenes.size()
 	update_character_model()
 
-func _on_btn_back_pressed() -> void: # Connect BtnBack
+func _on_back_button_pressed() -> void: # Connect BtnBack
 	switch_to_main_menu()
 
-func _on_btn_select_pressed() -> void: # Connect BtnSelect
+func _on_select_button_pressed() -> void: # Connect BtnSelect
 	switch_to_main_menu()
 
 # --- Model Swapping ---

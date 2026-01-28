@@ -7,6 +7,7 @@
 albedo_texture = ExtResource("2_3axxb")
 
 [node name="dwelll" instance=ExtResource("1_nv7sr")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
 
 [node name="Character_12" parent="Skeleton3D" index="0"]
 surface_material_override/0 = SubResource("StandardMaterial3D_udlmi")
