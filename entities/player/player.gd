@@ -34,6 +34,8 @@ var cell_size_world: float = 7.0 # grid size
 var is_covering_eyes = false 
 
 func _ready():
+	add_to_group("player")
+	
 	# --- NEW: Capture Mouse ---
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
@@ -122,18 +124,22 @@ func set_state_sight():
 	blindfold.visible = false
 	blindfold.color.a = 0.0
 
-func initialize_minimap(map_data: Array, w: int, h: int):
+func initialize_minimap(map_data: Array, w: int, h: int, grid_cell_size: float = 2.0):
 	map_width_cells = float(w)
 	map_height_cells = float(h)
+	cell_size_world = grid_cell_size
+	
+	print("Minimap Initialized: ", w, "x", h, " CellSize:", cell_size_world)
 	
 	var img = Image.create(w, h, false, Image.FORMAT_RGBA8)
+	
 	for x in range(w):
 		for y in range(h):
 			if map_data[x][y] == 1:
-				img.set_pixel(x, y, Color.BLACK)
+				img.set_pixel(x, y, Color.BLACK) # Wall Color
 			else:
-				img.set_pixel(x, y, Color.LIGHT_GRAY)
-				
+				img.set_pixel(x, y, Color(0.8, 0.8, 0.8, 0.5)) # Floor Color (Light Gray, semi-transparent)
+	
 	var tex = ImageTexture.create_from_image(img)
 	map_texture_rect.texture = tex
 	
@@ -151,24 +157,22 @@ func check_looking_down():
 func update_minimap_marker():
 	if not minimap_container.visible: return
 	
-	# Calculate Grid Position
-	var grid_x = global_position.x / cell_size_world
-	var grid_z = global_position.z / cell_size_world
+	var grid_pos_x = global_position.x / cell_size_world
+	var grid_pos_z = global_position.z / cell_size_world
 	
-	# Calculate Ratio using the DYNAMIC map size
-	var ratio_x = grid_x / map_width_cells
-	var ratio_y = grid_z / map_height_cells
+	var ratio_x = grid_pos_x / map_width_cells
+	var ratio_y = grid_pos_z / map_height_cells
 	
-	# Map to UI Size
 	var ui_width = map_texture_rect.size.x
 	var ui_height = map_texture_rect.size.y
 	
-	# Set Position
 	var final_x = (ratio_x * ui_width) - (player_marker.size.x / 2.0)
 	var final_y = (ratio_y * ui_height) - (player_marker.size.y / 2.0)
 	
-	player_marker.position.x = final_x
-	player_marker.position.y = final_y
+	player_marker.position = Vector2(final_x, final_y)
+	
+	player_marker.rotation = -rotation.y
+	
 func game_over():
 	# Placeholder for what happens when time runs out
 	print("GAME OVER - TIME IS UP")

@@ -18,12 +18,33 @@ var map_data: Array
 var width: int
 var height: int
 var cell_size: float = 7.0
+var active_enemies: Array[Node] = []
 
 func _ready():
 	# Wait for maze to be ready
 	await get_tree().process_frame
 	_find_maze_reference()
 
+func start_spawning(data: Array, w: int, h: int, grid_size: float):
+	print("EnemySpawner: Received command to spawn...")
+	
+	map_data = data
+	width = w
+	height = h
+	cell_size = grid_size
+	
+	await get_tree().create_timer(0.5).timeout
+	
+	# 3. Spawn
+	_spawn_all_enemies()
+
+func clear_enemies():
+	print("EnemySpawner: Clearing %d old enemies." % active_enemies.size())
+	for enemy in active_enemies:
+		if is_instance_valid(enemy):
+			enemy.queue_free()
+	active_enemies.clear()
+	
 func _find_maze_reference():
 	
 	# Find the MazeWorld node - adjust path based on where spawner is added

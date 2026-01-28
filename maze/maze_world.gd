@@ -1,91 +1,188 @@
 extends Node3D
 
-# Configuration
-@export var width: int = 21
-@export var height: int = 21
+# --- Configuration ---
+@export var base_width: int = 21
+@export var base_height: int = 21
 @export var removal_chance: float = 0.1
-
-# --- NEW: Assign your player.tscn here in the Inspector ---
 @export var player_scene: PackedScene 
 
+# --- Nodes ---
 @onready var grid_map: GridMap = $GridMap
+@onready var enemy_spawner = $EnemySpawner
+
+# --- State Variables ---
+var current_level: int = 1
+var max_levels: int = 3
+var current_width: int
+var current_height: int
 
 var map_data: Array = []
 var astar: AStarGrid2D
 var navigation_region: NavigationRegion3D
+var player_instance: Node3D
+var exit_area: Area3D
 
 func _ready():
-	# Initialize map with all walls
-	for x in range(width):
+	# Start the game at level 1
+	start_level(1)
+
+func start_level(level_number: int):
+	print("\n--- Starting Level %d ---" % level_number)
+	current_level = level_number
+	
+	# 1. CLEANUP: Clear old map, triggers, and navigation
+	cleanup_level()
+	
+	# 2. SETUP DIMENSIONS: Increase size slightly per level (optional)
+	# Level 1 uses base size. Level 2 adds 4 tiles, etc.
+	current_width = base_width + ((level_number - 1) * 4)
+	current_height = base_height + ((level_number - 1) * 4)
+	
+	# 3. INITIALIZE DATA: Fill map with walls (1)
+	map_data = []
+	for x in range(current_width):
 		var col = []
-		for y in range(height):
+		for y in range(current_height):
 			col.append(1)
 		map_data.append(col)
 
-	# Generate maze	
+	# 4. GENERATE MAZE
 	randomize()
 	generate_recursive_backtracker()
-	
-	# Add loops (multiple paths)
 	add_loops()
 	
-	# --- NEW: Carve an exit in the outer wall ---
-	create_exit()
+	# 5. CREATE EXIT: We capture the position to place the trigger later
+	var exit_coords = create_exit()
 	
-	# Render to 3D
+	# 6. RENDER VISUALS & LOGIC
 	render_to_gridmap()
-	
-	# Setup A* for optimal path
 	setup_astar()
-	
-	# Setup navigation for monsters
 	setup_navigation()
 	
-	# --- NEW: Spawn the player AFTER the maze exists ---
-	spawn_player()
+	# 7. PLACE PLAYER
+	spawn_or_reset_player()
+	
+	# 8. PLACE EXIT TRIGGER
+	spawn_exit_trigger(exit_coords)
+	
+	if has_node("EnemySpawner"):
+		print("DEBUG: Ordering EnemySpawner to start...")
+		$EnemySpawner.start_spawning(map_data, current_width, current_height, grid_map.cell_size.x)
 
-func spawn_player():
+func cleanup_level():
+	grid_map.clear()
+	
+	# NEW: Clear old enemies
+	if has_node("EnemySpawner"):
+		$EnemySpawner.clear_enemies()
+
+	if navigation_region:
+		navigation_region.queue_free()
+		navigation_region = null
+		
+	if exit_area:
+		exit_area.queue_free()
+		exit_area = null
+
+func spawn_or_reset_player():
 	if not player_scene:
 		printerr("No Player Scene assigned in Inspector!")
 		return
 
-	# We know (1, 1) is always the starting floor based on your generator logic
+	# Start is always (1, 1) based on generation logic
 	var start_x = 1
 	var start_y = 1
 	
-	# 1. Instance the player
-	var player = player_scene.instantiate()
-	add_child(player)
-	
-	# 2. Get the real world position of the grid cell (1, 1)
+	# Convert grid coords to world coords
 	var world_pos = grid_map.map_to_local(Vector3i(start_x, 0, start_y))
-	
-	# 3. Apply position with a slight Y offset
 	world_pos.y += 1.5 
 	
-	player.global_position = world_pos
+	# If player doesn't exist, spawn them. If they do, just move them.
+	if not player_instance:
+		player_instance = player_scene.instantiate()
+		add_child(player_instance)
 	
-	print("Player spawned at: ", world_pos)
+	player_instance.global_position = world_pos
 	
-	# Initialize minimap if the player script supports it
-	if player.has_method("initialize_minimap"):
-		player.initialize_minimap(map_data, width, height)
+	# Reset rotation (optional, so they face forward)
+	player_instance.rotation = Vector3.ZERO
+	
+	if player_instance.has_method("initialize_minimap"):
+		player_instance.initialize_minimap(map_data, current_width, current_height, grid_map.cell_size.x)
+		
+	print("Player positioned at: ", world_pos)
 
-func create_exit():
-	# Search the bottom/right edges for a valid floor tile to connect to.
-	# Try to find a floor on the far right column (width - 2)
-	for y in range(height - 2, 0, -1):
-		if map_data[width - 2][y] == 0:
-			map_data[width - 1][y] = 0 # Knock down the rightmost wall
-			print("Exit created at: ", Vector2i(width - 1, y))
-			return
+func spawn_exit_trigger(grid_pos: Vector2i):
+	if exit_area: exit_area.queue_free()
+	
+	exit_area = Area3D.new()
+	exit_area.name = "LevelExitTrigger"
+	add_child(exit_area)
+	
+	# 1. COLLISION SETUP
+	# We set the "Mask" to 2. This means this Area only scans for objects on Layer 2.
+	exit_area.collision_layer = 0   # The trigger itself is invisible to others
+	exit_area.collision_mask = 2    # The trigger ONLY looks for Layer 2 (The Player)
+	
+	var col = CollisionShape3D.new()
+	var box = BoxShape3D.new()
+	# Make it slightly smaller than the cell so it doesn't clip neighbor walls
+	var size_ratio = grid_map.cell_size.x * 0.8 
+	box.size = Vector3(size_ratio, 4.0, size_ratio) 
+	col.shape = box
+	exit_area.add_child(col)
+	
+	# 2. POSITIONING
+	var world_pos = grid_map.map_to_local(Vector3i(grid_pos.x, 0, grid_pos.y))
+	world_pos.y += 1.0
+	exit_area.global_position = world_pos
+	
+	exit_area.body_entered.connect(_on_exit_entered)
+	print("DEBUG: Exit Trigger set. Waiting for Player on Layer 2...")
 
-	# Fallback: Try to find a floor on the bottom row (height - 2)
-	for x in range(width - 2, 0, -1):
-		if map_data[x][height - 2] == 0:
-			map_data[x][height - 1] = 0 # Knock down the bottom wall
-			print("Exit created at: ", Vector2i(x, height - 1))
-			return
+func _on_exit_entered(body):
+	# Ignore the GridMap explicitly if it still slips through
+	if body is GridMap:
+		return
+		
+	print("DEBUG: Something entered exit: ", body.name)
+	
+	# Check for group OR just assume it's player if it's on Layer 2
+	if body.is_in_group("player"):
+		print("DEBUG: Player detected! Loading next level...")
+		exit_area.set_deferred("monitoring", false)
+		call_deferred("next_level_logic")
+
+func next_level_logic():
+	print("DEBUG: Logic executing for Level transition.")
+	if current_level < max_levels:
+		start_level(current_level + 1)
+	else:
+		game_over_win()
+
+func game_over_win():
+	print("################################")
+	print("   YOU BEAT ALL 3 MAZES!        ")
+	print("################################")
+	# Here you could get_tree().quit() or load a 'Victory' scene
+	set_process(false) # Stop game logic if necessary
+
+# --- Generation Logic (Updated to use current_width/height) ---
+
+func create_exit() -> Vector2i:
+	# Search right edge
+	for y in range(current_height - 2, 0, -1):
+		if map_data[current_width - 2][y] == 0:
+			map_data[current_width - 1][y] = 0
+			return Vector2i(current_width - 1, y)
+
+	# Fallback: Search bottom edge
+	for x in range(current_width - 2, 0, -1):
+		if map_data[x][current_height - 2] == 0:
+			map_data[x][current_height - 1] = 0
+			return Vector2i(x, current_height - 1)
+	
+	return Vector2i(1, 1) # Emergency fallback (should not happen)
 
 func generate_recursive_backtracker():	
 	var current = Vector2i(1, 1)
@@ -101,7 +198,6 @@ func generate_recursive_backtracker():
 		if neighbors.size() > 0:
 			var next_cell = neighbors.pick_random()
 			
-			# Remove wall between current and next
 			var wall_to_remove = current + (next_cell - current) / 2
 			map_data[wall_to_remove.x][wall_to_remove.y] = 0
 			map_data[next_cell.x][next_cell.y] = 0
@@ -116,22 +212,22 @@ func get_unvisited_neighbors(cell: Vector2i) -> Array[Vector2i]:
 	
 	for dir in directions:
 		var neighbor = cell + dir
-		if neighbor.x > 0 and neighbor.x < width - 1 and neighbor.y > 0 and neighbor.y < height - 1:
+		if neighbor.x > 0 and neighbor.x < current_width - 1 and neighbor.y > 0 and neighbor.y < current_height - 1:
 			if map_data[neighbor.x][neighbor.y] == 1:
 				list.append(neighbor)
 	return list
 
 func add_loops():
-	for x in range(1, width - 1):
-		for y in range(1, height - 1):
+	for x in range(1, current_width - 1):
+		for y in range(1, current_height - 1):
 			if map_data[x][y] == 1:
 				if randf() < removal_chance:
 					map_data[x][y] = 0
 
 func render_to_gridmap():
-	grid_map.clear()
-	for x in range(width):
-		for y in range(height):
+	# Note: We called grid_map.clear() in cleanup_level()
+	for x in range(current_width):
+		for y in range(current_height):
 			if map_data[x][y] == 1:
 				grid_map.set_cell_item(Vector3i(x, 3, y), 0)
 			else:
@@ -140,17 +236,14 @@ func render_to_gridmap():
 
 func setup_astar():
 	astar = AStarGrid2D.new()
-	astar.region = Rect2i(0, 0, width, height)
+	astar.region = Rect2i(0, 0, current_width, current_height)
 	astar.cell_size = Vector2(2, 2)
 	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	astar.update()
 	
-	for x in range(width):
-		for y in range(height):
+	for x in range(current_width):
+		for y in range(current_height):
 			astar.set_point_solid(Vector2i(x, y), map_data[x][y] == 1)
-
-func get_optimal_path(start: Vector2i, end: Vector2i) -> PackedVector2Array:
-	return astar.get_id_path(start, end)
 
 func setup_navigation():
 	navigation_region = NavigationRegion3D.new()
@@ -166,8 +259,8 @@ func setup_navigation():
 	var cell_size_vector = grid_map.cell_size
 	var half_size = cell_size_vector.x / 2.0
 	
-	for x in range(width):
-		for z in range(height):
+	for x in range(current_width):
+		for z in range(current_height):
 			if map_data[x][z] == 0:
 				var world_pos = grid_map.map_to_local(Vector3i(x, 0, z))
 				var nav_y = world_pos.y
@@ -184,4 +277,5 @@ func setup_navigation():
 	nav_mesh.polygons = polygons
 	navigation_region.navigation_mesh = nav_mesh
 	
-	print("Navigation mesh created with %d polygons" % polygons.size())
+	# Bake is not needed because we manually constructed the mesh above
+	print("Navigation mesh created for Level ", current_level)

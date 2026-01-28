@@ -1,14 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://dp7lspl41wtxo"]
+[gd_scene load_steps=4 format=3 uid="uid://dp7lspl41wtxo"]
 
 [ext_resource type="Script" uid="uid://csrprf5bsc4x6" path="res://maze/maze_world.gd" id="1_63eu4"]
 [ext_resource type="MeshLibrary" uid="uid://bxah33e5mgkm" path="res://assets/models/WallAndFloor.tres" id="2_kpn3v"]
+[ext_resource type="Script" uid="uid://23x7pb3jeuci" path="res://entities/enemies/enemy_spawner.gd" id="3_w8u0y"]
 
 [node name="MazeWorld" type="Node3D"]
 script = ExtResource("1_63eu4")
-width = 15
-height = 15
 removal_chance = 0.22
 
 [node name="GridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("2_kpn3v")
 cell_size = Vector3(7, 1, 7)
+
+[node name="Node3D" type="Node3D" parent="."]
+script = ExtResource("3_w8u0y")
