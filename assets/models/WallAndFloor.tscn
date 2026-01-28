@@ -1,0 +1,86 @@
+[gd_scene load_steps=14 format=3 uid="uid://d0222bq63bvgp"]
+
+[ext_resource type="Shader" uid="uid://dxph3bj7dpmyp" path="res://objects.gdshader" id="1_8oled"]
+[ext_resource type="Texture2D" uid="uid://c2hhbra7juf05" path="res://assets/textures/Bricks_01-128x128.png" id="1_xiqpx"]
+[ext_resource type="Texture2D" uid="uid://bxhayrs3o6r7k" path="res://assets/textures/Tile_23-128x128.png" id="2_arjuj"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kwv2b"]
+render_priority = 0
+shader = ExtResource("1_8oled")
+shader_parameter/color_texture = ExtResource("1_xiqpx")
+shader_parameter/vertex_wobble = 0.0499999988824
+shader_parameter/affine_mapping = 0.499999988824
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_arjuj"]
+albedo_texture = ExtResource("1_xiqpx")
+uv1_scale = Vector3(3, 3, 3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_di2w7"]
+material = SubResource("StandardMaterial3D_arjuj")
+size = Vector3(7, 15, 7)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cavak"]
+size = Vector3(1, 2.3, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cg3hd"]
+albedo_texture = ExtResource("2_arjuj")
+uv1_scale = Vector3(2, 2, 2)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_cavak"]
+material = SubResource("StandardMaterial3D_cg3hd")
+flip_faces = true
+size = Vector2(7, 7)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_4gsw8"]
+data = PackedVector3Array(1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, 1, -1, 0, -1, 1, 0, -1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_utikl"]
+render_priority = 0
+shader = ExtResource("1_8oled")
+shader_parameter/color_texture = ExtResource("2_arjuj")
+shader_parameter/vertex_wobble = 0.0499999988824
+shader_parameter/affine_mapping = 0.499999988824
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ufmwh"]
+albedo_texture = ExtResource("2_arjuj")
+uv1_scale = Vector3(2, 2, 2)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_iln88"]
+material = SubResource("StandardMaterial3D_ufmwh")
+size = Vector2(7, 7)
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Wall" type="MeshInstance3D" parent="."]
+transform = Transform3D(3, 0, 0, 0, 6, 0, 0, 0, 3, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_kwv2b")
+mesh = SubResource("BoxMesh_di2w7")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Wall"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall/StaticBody3D"]
+transform = Transform3D(7, 0, 0, 0, 7, 0, 0, 0, 7, 0, 0, 0)
+shape = SubResource("BoxShape3D_cavak")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+transform = Transform3D(7, 0, 0, 0, 7, 0, 0, 0, 7, 0, 45, 0)
+mesh = SubResource("PlaneMesh_cavak")
+skeleton = NodePath("")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Roof"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Roof/StaticBody3D"]
+transform = Transform3D(3.5, 0, 0, 0, 3.5, 0, 0, 0, 3.5, 0, 0, 0)
+shape = SubResource("ConcavePolygonShape3D_4gsw8")
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(7, 0, 0, 0, 7, 0, 0, 0, 7, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_utikl")
+mesh = SubResource("PlaneMesh_iln88")
+skeleton = NodePath("")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Floor"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor/StaticBody3D"]
+transform = Transform3D(3.5, 0, 0, 0, 3.5, 0, 0, 0, 3.5, 0, 0, 0)
+shape = SubResource("ConcavePolygonShape3D_4gsw8")
