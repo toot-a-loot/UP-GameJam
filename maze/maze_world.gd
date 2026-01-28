@@ -133,9 +133,10 @@ func render_to_gridmap():
 	for x in range(width):
 		for y in range(height):
 			if map_data[x][y] == 1:
-				grid_map.set_cell_item(Vector3i(x, 0 , y), 0)
+				grid_map.set_cell_item(Vector3i(x, 3, y), 0)
 			else:
 				grid_map.set_cell_item(Vector3i(x, 0, y), 1)
+				grid_map.set_cell_item(Vector3i(x, 10, y), 5)
 
 func setup_astar():
 	astar = AStarGrid2D.new()
