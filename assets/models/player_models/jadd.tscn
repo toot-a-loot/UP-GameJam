@@ -1,13 +1,55 @@
-[gd_scene load_steps=4 format=3 uid="uid://cgwhbrevjmkp8"]
+[gd_scene load_steps=6 format=3 uid="uid://cgwhbrevjmkp8"]
 
-[ext_resource type="PackedScene" uid="uid://bvxlbrl5rjp35" path="res://assets/models/base_models/jadd.fbx" id="1_wf6im"]
-[ext_resource type="Texture2D" uid="uid://cxdmm3yk7084a" path="res://assets/textures/charac_textures/jadplag.png" id="2_y1v2c"]
+[ext_resource type="PackedScene" uid="uid://1jsd3q5eo5mm" path="res://assets/models/base_models/jadd.fbx" id="1_wf6im"]
+[ext_resource type="Animation" uid="uid://fee1ehhgog75" path="res://assets/animations/res/idle.res" id="2_sksev"]
+[ext_resource type="Texture2D" uid="uid://b1c6en7elh7kk" path="res://assets/textures/charac_textures/jadplag.png" id="2_y1v2c"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yxxfr"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4awrk"]
 albedo_texture = ExtResource("2_y1v2c")
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_4awrk"]
+_data = {
+&"idle": ExtResource("2_sksev")
+}
 
 [node name="jadd" instance=ExtResource("1_wf6im")]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
 
-[node name="Character_03" parent="Skeleton3D" index="0"]
-surface_material_override/0 = SubResource("StandardMaterial3D_yxxfr")
+[node name="GeneralSkeleton" parent="." index="0"]
+bones/0/position = Vector3(0.002818387, 2.721164, 0.049034595)
+bones/0/rotation = Quaternion(9.304131e-10, 0, 1.8635546e-09, 1)
+bones/1/rotation = Quaternion(4.629328e-10, -3.5652192e-10, 2.2737368e-12, 1)
+bones/2/rotation = Quaternion(-4.5474735e-12, -4.656613e-10, 2.910383e-11, 1)
+bones/3/rotation = Quaternion(-7.508787e-09, -3.6670822e-09, 1.1641531e-09, 1)
+bones/4/rotation = Quaternion(7.421476e-09, -3.8126013e-09, 6.984918e-10, 1)
+bones/5/rotation = Quaternion(0, -3.7252903e-09, -1.8626451e-09, 1)
+bones/8/rotation = Quaternion(0, 1, -1.4901161e-08, -1.4901161e-08)
+bones/9/rotation = Quaternion(0, -0.70710677, 6.322028e-08, 0.70710677)
+bones/10/rotation = Quaternion(-7.450581e-09, 0.70710677, -7.450581e-09, 0.70710677)
+bones/11/rotation = Quaternion(0.060210034, -0.13026981, 0.047903955, 0.9884886)
+bones/12/rotation = Quaternion(7.4505806e-08, 4.4703484e-08, 0, 1)
+bones/13/rotation = Quaternion(-5.9604645e-08, 0, 0, 1)
+bones/14/rotation = Quaternion(-1.4901163e-08, 1.4901163e-08, 7.450581e-08, 1)
+bones/17/rotation = Quaternion(-6.322027e-08, 0.70710677, -4.2146848e-08, 0.70710677)
+bones/18/rotation = Quaternion(-3.6905913e-08, -0.7071068, -5.2409406e-09, 0.7071067)
+bones/19/rotation = Quaternion(0.013124434, 0.06151869, -0.017625956, 0.997864)
+bones/20/rotation = Quaternion(-1.4901161e-08, 1.4901161e-08, -1.4901161e-08, 1)
+bones/21/rotation = Quaternion(5.960463e-08, 0, 0, 1)
+bones/22/rotation = Quaternion(-2.9802322e-08, 2.9802322e-08, 2.9802322e-08, 1)
+bones/23/rotation = Quaternion(5.0931703e-09, 1.6249032e-08, 1, -3.6739038e-09)
+bones/24/rotation = Quaternion(-1.8626454e-09, 1, 7.4505815e-09, 8.032658e-09)
+bones/25/rotation = Quaternion(-5.268356e-09, 0.7071068, -0.7071068, -1.580507e-08)
+bones/26/rotation = Quaternion(-2.6341782e-09, 1, 0, -7.902535e-09)
+bones/28/rotation = Quaternion(4.969479e-09, -6.5674612e-09, 1, -4.629328e-09)
+bones/29/rotation = Quaternion(7.4505815e-09, 1, 1.4901163e-08, 4.190952e-09)
+bones/30/rotation = Quaternion(-5.0049394e-08, 0.70710677, -0.7071069, -1.3170891e-08)
+bones/31/rotation = Quaternion(5.2683564e-09, 1, 0, 1.580507e-08)
+
+[node name="Character_03" parent="GeneralSkeleton" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_4awrk")
+
+[node name="AnimationPlayer" parent="." index="1"]
+libraries = {
+&"animation": SubResource("AnimationLibrary_4awrk")
+}
+autoplay = "animation/idle"
