@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bbl15t1j4p6vk"]
 
-[ext_resource type="PackedScene" uid="uid://ckf6o02icjhvq" path="res://assets/models/base_models/spyke.fbx" id="1_14s3n"]
-[ext_resource type="Texture2D" uid="uid://cqch6c8q3seaa" path="res://assets/textures/charac_textures/spykedodo.png" id="2_qmin4"]
+[ext_resource type="PackedScene" uid="uid://dycugwq2by36w" path="res://assets/models/base_models/spyke.fbx" id="1_14s3n"]
+[ext_resource type="Texture2D" uid="uid://05l3axb4lrrv" path="res://assets/textures/charac_textures/spykedodo.png" id="2_qmin4"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ih8n0"]
 albedo_texture = ExtResource("2_qmin4")

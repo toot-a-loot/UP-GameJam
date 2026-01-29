@@ -3,16 +3,16 @@ extends Control
 const INGAME = preload("uid://bcvlx6vixaf87")
 
 # --- Nodes ---
-@onready var camera_3d: Camera3D = $"../Camera3D"
-@onready var character_pivot: Marker3D = $"../CharacterPivot"
+@export var camera_3d: Camera3D
+@export var character_pivot: Marker3D
 
 # UI Containers
 @onready var main_menu_ui: Control = $MainMenu
 @onready var char_menu_ui: Control = $CharacterMenu
 
 # UI Elements (Character Menu)
-@onready var lbl_name: Label = $CharacterMenu/HBoxContainer/InfoBox/Name
-@onready var lbl_desc: Label = $CharacterMenu/HBoxContainer/InfoBox/Description
+@export var lbl_name: Label
+@export var lbl_desc: Label
 
 # --- Configuration ---
 @export var transition_duration: float = 1.5
@@ -25,7 +25,7 @@ var model_rotation_main = Vector3(0.0,-27,0.0)
 
 # 2. Character Select View (x=7 area)
 var cam_pos_char = Vector3(7.0, 2.6, 2.0)
-var model_pos_char = Vector3(7.0, 1.0, 0.0) 
+var model_pos_char = Vector3(7.0, 1.2, 0.3) 
 var model_rotation_char = Vector3(0.0, 0.0,0.0)
 
 # --- Data ---

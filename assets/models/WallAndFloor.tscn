@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://d0222bq63bvgp"]
 
-[ext_resource type="Shader" uid="uid://dxph3bj7dpmyp" path="res://objects.gdshader" id="1_8oled"]
+[ext_resource type="Shader" uid="uid://dxph3bj7dpmyp" path="res://shaders/objects.gdshader" id="1_8oled"]
 [ext_resource type="Texture2D" uid="uid://c2hhbra7juf05" path="res://assets/textures/Bricks_01-128x128.png" id="1_xiqpx"]
 [ext_resource type="Texture2D" uid="uid://bxhayrs3o6r7k" path="res://assets/textures/Tile_23-128x128.png" id="2_arjuj"]
 
