@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bcvlx6vixaf87"]
+[gd_scene load_steps=15 format=3 uid="uid://bcvlx6vixaf87"]
 
 [ext_resource type="Script" uid="uid://23x7pb3jeuci" path="res://entities/enemies/enemy_spawner.gd" id="2_kgmhh"]
 [ext_resource type="PackedScene" uid="uid://dp7lspl41wtxo" path="res://maze/MazeWorld.tscn" id="2_p0uuu"]
@@ -6,7 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://creiyraf2vk0q" path="res://entities/enemies/watcher/watcher.tscn" id="3_pu7co"]
 [ext_resource type="PackedScene" uid="uid://dnqg1ryy6bkjl" path="res://entities/enemies/listener/listener.tscn" id="4_ic5ef"]
 [ext_resource type="PackedScene" uid="uid://gglcskpcdf6j" path="res://entities/enemies/chaser/chaser.tscn" id="5_8g0if"]
-[ext_resource type="Shader" uid="uid://dwhqqyst7tpfr" path="res://post_processing.gdshader" id="7_ic5ef"]
+[ext_resource type="Shader" uid="uid://dwhqqyst7tpfr" path="res://shaders/post_processing.gdshader" id="7_ic5ef"]
+[ext_resource type="Shader" uid="uid://c8qkcmanwuo1w" path="res://shaders/CRT.gdshader" id="8_8g0if"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ic5ef"]
 sky_top_color = Color(0.23394024, 0.2857057, 0.35467437, 1)
@@ -35,6 +36,30 @@ shader_parameter/dither_amount = 0.499999988824
 flip_faces = true
 size = Vector2(2, 2)
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ooucj"]
+shader = ExtResource("8_8g0if")
+shader_parameter/overlay = false
+shader_parameter/scanlines_opacity = 0.30000001425
+shader_parameter/scanlines_width = 0.400000019
+shader_parameter/grille_opacity = 0.10000000475
+shader_parameter/resolution = Vector2(320, 240)
+shader_parameter/pixelate = false
+shader_parameter/roll = true
+shader_parameter/roll_speed = 100.0
+shader_parameter/roll_size = 1.0000000475
+shader_parameter/roll_variation = 5.0
+shader_parameter/distort_intensity = 0.00400000019
+shader_parameter/noise_opacity = 0.070000003325
+shader_parameter/noise_speed = 8.0
+shader_parameter/static_noise_intensity = 0.10000000475
+shader_parameter/aberration = 0.00900004792750008
+shader_parameter/brightness = 1.4
+shader_parameter/discolor = true
+shader_parameter/warp_amount = 0.010000000475
+shader_parameter/clip_warp = false
+shader_parameter/vignette_intensity = 5.0
+shader_parameter/vignette_opacity = 0.046000002185
+
 [node name="Ingame" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -58,3 +83,14 @@ chaser_scene = ExtResource("5_8g0if")
 material_override = SubResource("ShaderMaterial_8g0if")
 extra_cull_margin = 16384.0
 mesh = SubResource("QuadMesh_ooucj")
+
+[node name="CRT" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="CRT"]
+material = SubResource("ShaderMaterial_ooucj")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
