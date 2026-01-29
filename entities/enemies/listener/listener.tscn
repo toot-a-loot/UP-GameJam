@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ypressxy4i2a" path="res://entities/enemies/listener/listener.gd" id="1_listener"]
 [ext_resource type="AudioStream" uid="uid://kmcany7plqph" path="res://assets/audio/Fast running sound effect for monster.mp3" id="2_footstep_audio"]
-[ext_resource type="AudioStream" uid="uid://coilmouskbmqh" path="res://assets/audio/walking.mp3" id="3_j15k5"]
+[ext_resource type="AudioStream" uid="uid://cnvnayvp0hxls" path="res://assets/audio/walking.mp3" id="3_j15k5"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4

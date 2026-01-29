@@ -74,6 +74,11 @@ func _physics_process(delta):
 	if can_move:
 		if is_chasing:
 			_update_chase_target()
+			desired_velocity = _get_nav_velocity(delta)
+		else:
+			_idle_behavior(delta)
+			if chase_target != Vector3.ZERO:
+				desired_velocity = _get_nav_velocity(delta)
 		
 		if is_chasing or chase_target != Vector3.ZERO:
 			desired_velocity = _get_nav_velocity(delta)

@@ -8,7 +8,8 @@ class_name Listener
 @export var memory_duration: float = 5.0 #how long to chase last known location
 
 # wandering settings
-@export var wander_direction_change_time: float = 3.0
+@export var wander_distance_min: float = 10.0
+@export var wander_distance_max: float = 25.0
 @export var wander_pause_chance: float = 0.2 #20% chance mu pause
 @export var wander_pause_duration: float = 2.0
 
@@ -21,7 +22,7 @@ class_name Listener
 @onready var footstep_sound: AudioStreamPlayer3D = $FootstepSound
 
 #footstep
-@export var chase_speed: float = 13.0
+@export var chase_speed: float = 14.0
 @export var walk_speed: float = 6.0
 @export var footstep_chase_sound: AudioStream
 @export var footstep_walk_sound: AudioStream
@@ -37,10 +38,11 @@ var is_tired: bool = false
 var tired_timer: float = 0.0
 
 #wandering
-var wander_direction: Vector3 = Vector3.ZERO
-var wander_timer: float = 0.0
+var wander_target: Vector3 = Vector3.ZERO
 var is_paused: bool = false
 var pause_timer: float = 0.0
+var stuck_timer: float = 0.0
+var last_position: Vector3 = Vector3.ZERO
 
 func _ready():
 	super._ready()
@@ -51,10 +53,8 @@ func _ready():
 	# Set footstep interval from parent
 	footstep_interval = 0.3
 	
-	print("Listener: Ready at position ", global_position)
-	print("Listener: can_move = ", can_move, " speed = ", speed)
-	
 	#initialize wandering
+	last_position = global_position
 	_choose_new_wander_direction()
 	
 	#connect hearing signals
@@ -67,8 +67,6 @@ func _ready():
 func _physics_process(delta):
 	if player == null:
 		player = EnemyManager.get_player()
-		if player:
-			print("Listener: Found player at ", player.global_position)
 	
 	# Handle tired state first - enemy is stunned and cannot move
 	if is_tired:
@@ -79,7 +77,6 @@ func _physics_process(delta):
 		if tired_timer <= 0:
 			is_tired = false
 			chase_timer = 0.0
-			print("Listener: Recovered from tired state, resuming wander")
 			_choose_new_wander_direction()
 		
 		# Stop footstep sound when tired
@@ -100,7 +97,6 @@ func _physics_process(delta):
 		
 		# Check if tired from chasing too long
 		if chase_timer >= max_chase_duration:
-			print("Listener: Got tired from chasing, entering tired state")
 			is_tired = true
 			tired_timer = tired_duration
 			is_chasing = false
@@ -112,11 +108,22 @@ func _physics_process(delta):
 		
 		search_timer -= delta
 		if search_timer <= 0: #lost the player start wander
-			print("Listener: Lost player, resuming wander")
 			speed = walk_speed
 			is_chasing = false
 			chase_timer = 0.0  # Reset chase timer
 			_choose_new_wander_direction()
+	else:
+		# Check if stuck while wandering (not moving much)
+		var distance_moved = global_position.distance_to(last_position)
+		if distance_moved < 0.1 and not is_paused:
+			stuck_timer += delta
+			if stuck_timer > 2.0:
+				_choose_new_wander_direction()
+				stuck_timer = 0.0
+		else:
+			stuck_timer = 0.0
+		
+		last_position = global_position
 			
 	if velocity.length() > 0.1:
 		footstep_timer -= delta
@@ -209,22 +216,60 @@ func _idle_behavior(delta):
 	velocity.z = direction.z * speed
 	
 func _choose_new_wander_direction():
-	var random_offset = Vector3(randf_range(-20, 20), 0, randf_range(-20, 20))
-	var target_pos = global_position + random_offset
+	if not navigation_ready:
+		return
+		
+	# Try multiple times to find a valid wander target
+	var attempts = 0
+	var max_attempts = 10
 	
-	nav_agent.target_position = target_pos
+	while attempts < max_attempts:
+		# Generate a random direction
+		var random_angle = randf() * TAU  # Random angle in radians (0 to 2π)
+		var random_distance = randf_range(wander_distance_min, wander_distance_max)
+		
+		# Calculate target position
+		var offset = Vector3(
+			cos(random_angle) * random_distance,
+			0,
+			sin(random_angle) * random_distance
+		)
+		var target_pos = global_position + offset
+		
+		# Set the navigation target
+		nav_agent.target_position = target_pos
+		
+		# Wait a frame for navigation to calculate
+		await get_tree().process_frame
+		
+		# Check if the path is valid and not too short
+		if not nav_agent.is_navigation_finished():
+			var path = nav_agent.get_current_navigation_path()
+			if path.size() > 3:  # Ensure path has reasonable length
+				is_paused = false
+				return
+		
+		attempts += 1
+	
+	# Fallback: just pick a point in a random cardinal direction
+	var cardinal_directions = [
+		Vector3(1, 0, 0),
+		Vector3(-1, 0, 0),
+		Vector3(0, 0, 1),
+		Vector3(0, 0, -1)
+	]
+	var fallback_dir = cardinal_directions.pick_random()
+	var fallback_target = global_position + (fallback_dir * wander_distance_min)
+	nav_agent.target_position = fallback_target
 	is_paused = false
 		
 func _on_hearing_area_body_entered(body: Node3D):
-	print("Listener: Body entered hearing area: ", body.name)
 	if body == player or body.name == "Player":
 		player_in_hearing_range = true
-		print("Listener: Player in hearing range!")
 		
 func _on_hearing_area_body_exited(body: Node3D):
 	if body == player or body.name == "Player":
 		player_in_hearing_range = false
-		print("Listener: Player left hearing range")
 		
 func _on_player_spotted(position: Vector3):
 	# Don't respond to alerts if tired
@@ -232,7 +277,6 @@ func _on_player_spotted(position: Vector3):
 		return
 		
 	#receives alert from watcher
-	print("Listener: Received alert from Watcher at ", position)
 	set_chase_target(position, false)
 	search_timer = memory_duration
 	
