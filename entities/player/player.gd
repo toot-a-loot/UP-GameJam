@@ -18,6 +18,7 @@ var is_dead = false
 @onready var head = $Head
 @onready var camera = $Head/Camera3D
 @onready var blindfold = $CanvasLayer/ColorRect
+@onready var pause_screen = $CanvasLayer/PauseMenu
 # MAP NODES
 @onready var minimap_container = $CanvasLayer/MinimapContainer
 @onready var map_texture_rect = $CanvasLayer/MinimapContainer/MapTexture
@@ -72,6 +73,12 @@ func _ready():
 
 # --- NEW: Input Function for Mouse Look ---
 func _input(event):
+	if event.is_action_pressed("pause") and not is_dead:
+		toggle_pause()
+	
+	if get_tree().paused:
+		return
+		
 	if is_dead:
 		if event.is_action_pressed("ui_cancel"):
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -90,7 +97,7 @@ func _input(event):
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-90), deg_to_rad(90))
 
 func _physics_process(delta):
-	if is_dead:
+	if is_dead or get_tree().paused:
 		velocity = Vector3.ZERO
 		move_and_slide()
 		return
@@ -118,7 +125,8 @@ func _physics_process(delta):
 		is_covering_eyes = !is_covering_eyes 
 
 	# --- 2. BEHAVIOR ---
-	if is_covering_eyes:
+	# MODIFIED: Added check for 'minimap_container.visible'
+	if is_covering_eyes and not minimap_container.visible:
 		# MODE: MOVING (Hands over eyes)
 		set_state_moving()
 		
@@ -138,8 +146,10 @@ func _physics_process(delta):
 			velocity.z = move_toward(velocity.z, 0, current_speed)
 			
 	else:
-		# MODE: SIGHT (Hands over ears)
-		set_state_sight()
+		# MODE: SIGHT (Hands over ears) OR LOOKING AT MAP
+		# If minimap is visible, movement is disabled even if covering eyes
+		if not is_covering_eyes:
+			set_state_sight()
 		
 		# DISABLE Movement (Feet are glued to floor)
 		velocity.x = 0
@@ -155,7 +165,7 @@ func _physics_process(delta):
 func set_state_moving():
 	# Darken screen, allow flashlight
 	blindfold.visible = true
-	blindfold.color.a = 0.3 
+	blindfold.color.a = 0.6
 
 func set_state_sight():
 	# Crystal clear vision
@@ -238,3 +248,16 @@ func die():
 func restart_game():
 	# Reload the current scene
 	get_tree().reload_current_scene()
+	
+func toggle_pause():
+	var new_pause_state = !get_tree().paused
+	get_tree().paused = new_pause_state # This freezes the tree
+	
+	if new_pause_state:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		if pause_screen: 
+			pause_screen.visible = true
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		if pause_screen: 
+			pause_screen.visible = false
