@@ -12,6 +12,7 @@ extends CharacterBody3D
 @export var level_time_limit = 120.0
 var time_left = 0.0
 var is_game_active = true
+var is_dead = false
 
 # Nodes
 @onready var head = $Head
@@ -28,6 +29,9 @@ var map_height_cells: float = 21.0
 var cell_size_world: float = 7.0 # grid size
 @onready var timer_label = $CanvasLayer/TimerLabel
 
+# Death Screen
+@onready var death_screen: ColorRect
+
 # STATE VARIABLE
 # false = Sight Mode (Can see, can't move)
 # true = Move Mode (Can't see well, can move)
@@ -39,6 +43,28 @@ func _ready():
 	# --- NEW: Capture Mouse ---
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
+	# Create death screen if it doesn't exist
+	if not has_node("CanvasLayer/DeathScreen"):
+		death_screen = ColorRect.new()
+		death_screen.name = "DeathScreen"
+		death_screen.color = Color.BLACK
+		death_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+		death_screen.visible = false
+		death_screen.z_index = 100
+		
+		var death_label = Label.new()
+		death_label.text = "YOU DIED\n\nPress R to Restart"
+		death_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		death_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		death_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+		death_label.add_theme_font_size_override("font_size", 48)
+		death_label.add_theme_color_override("font_color", Color.RED)
+		death_screen.add_child(death_label)
+		
+		$CanvasLayer.add_child(death_screen)
+	else:
+		death_screen = $CanvasLayer/DeathScreen
+	
 	#ayaw ni e check gang kay maguba jud, matic lng e register ang player
 	EnemyManager.register_player(self)
 	
@@ -46,6 +72,13 @@ func _ready():
 
 # --- NEW: Input Function for Mouse Look ---
 func _input(event):
+	if is_dead:
+		if event.is_action_pressed("ui_cancel"):
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		if Input.is_action_just_pressed("restart"):
+			restart_game()
+		return
+		
 	if event is InputEventMouseMotion:
 		# Horizontal: Rotate the entire Player Body (affects movement direction)
 		rotate_y(-event.relative.x * mouse_sensitivity)
@@ -57,6 +90,11 @@ func _input(event):
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-90), deg_to_rad(90))
 
 func _physics_process(delta):
+	if is_dead:
+		velocity = Vector3.ZERO
+		move_and_slide()
+		return
+		
 	# Apply gravity
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -177,4 +215,26 @@ func game_over():
 	# Placeholder for what happens when time runs out
 	print("GAME OVER - TIME IS UP")
 	is_game_active = false
-	# You can add logic here later to reload the scene
+	die()
+
+func die():
+	if is_dead:
+		return
+		
+	print("PLAYER DIED!")
+	is_dead = true
+	is_game_active = false
+	
+	# Show death screen
+	if death_screen:
+		death_screen.visible = true
+	
+	# Release mouse cursor
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	
+	# Stop all movement
+	velocity = Vector3.ZERO
+	
+func restart_game():
+	# Reload the current scene
+	get_tree().reload_current_scene()

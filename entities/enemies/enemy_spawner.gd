@@ -68,55 +68,171 @@ func _find_maze_reference():
 	_spawn_all_enemies()
 
 func _spawn_all_enemies():
+	# Get the solution path from Start(1,1) to Exit
+	# We assume 'astar' is accessible from maze_world (see Source 36)
+	var exit_pos = maze_world.create_exit() # This might need adjusting if exit is already made
+	var path_points = maze_world.astar.get_id_path(Vector2i(1,1), exit_pos)
 	
-	# Spawn Watchers
-	for i in range(num_watchers):
-		_spawn_enemy(watcher_scene, "Watcher")
+	print("Spawner: Calculated path length: ", path_points.size())
 	
-	# Spawn Listeners
-	for i in range(num_listeners):
-		_spawn_enemy(listener_scene, "Listener")
-	
-	# Spawn Chasers with patrol points
+	# --- 1. SPAWN CHASERS (Guardians of the Exit) ---
+	# Spawn them near the end of the path (last 30% of the maze)
 	for i in range(num_chasers):
-		var chaser = _spawn_enemy(chaser_scene, "Chaser")
-		if chaser:
-			_assign_patrol_points(chaser)
-	
-	print("Enemy spawning complete!")
+		var random_index = randi_range(int(path_points.size() * 0.7), path_points.size() - 2)
+		var grid_pos = path_points[random_index]
+		_spawn_enemy_at_grid(chaser_scene, grid_pos.x, grid_pos.y, "Chaser")
 
-func _spawn_enemy(enemy_scene: PackedScene, enemy_type: String) -> Node3D:
-	if enemy_scene == null:
-		printerr("EnemySpawner: No scene assigned for " + enemy_type)
-		return null
-	
-	print("EnemySpawner: Attempting to spawn " + enemy_type)
-	
-	# Find a valid spawn position
-	var spawn_pos = _get_random_floor_position()
-	if spawn_pos == Vector3.ZERO:
-		printerr("EnemySpawner: Could not find valid spawn position for " + enemy_type)
-		return null
-	
-	# Instance the enemy
-	var enemy = enemy_scene.instantiate()
-	
-	if enemy == null:
-		printerr("EnemySpawner: Failed to instantiate " + enemy_type)
-		return null
+	# --- 2. SPAWN WATCHERS (Corridor Sentries) ---
+	# They should be positioned with good line of sight to corridors, not facing walls
+	for i in range(num_watchers):
+		var spawn_pos = _find_watcher_position(path_points)
+		if spawn_pos != Vector3.ZERO:
+			_spawn_enemy_at_world(watcher_scene, spawn_pos, "Watcher")
+		else:
+			# Fallback to random position if can't find good spot
+			var pos = _get_random_floor_position_away_from_player(20.0)
+			_spawn_enemy_at_world(watcher_scene, pos, "Watcher")
+
+	# --- 3. SPAWN LISTENERS (Roamers) ---
+	# Spawn in the middle section
+	for i in range(num_listeners):
+		var random_index = randi_range(int(path_points.size() * 0.2), int(path_points.size() * 0.6))
+		# Spawn slightly off-path so they aren't instantly blocking
+		var grid_pos = path_points[random_index] 
+		# Add jitter
+		grid_pos.x += randi_range(-2, 2)
+		grid_pos.y += randi_range(-2, 2)
 		
-	# Add to parent (MazeWorld)
+		# Validate
+		if grid_pos.x > 0 and grid_pos.x < width and map_data[grid_pos.x][grid_pos.y] == 0:
+			_spawn_enemy_at_grid(listener_scene, grid_pos.x, grid_pos.y, "Listener")
+		else:
+			# Fallback
+			var pos = _get_random_floor_position_away_from_player(15.0)
+			_spawn_enemy_at_world(listener_scene, pos, "Listener")
+
+func _find_watcher_position(path_points: Array) -> Vector3:
+	# Try to find a position that has good line of sight down a corridor
+	var max_attempts = 50
+	
+	for attempt in range(max_attempts):
+		# Pick a random point along the path
+		var path_index = randi_range(int(path_points.size() * 0.3), int(path_points.size() * 0.8))
+		var grid_pos = path_points[path_index]
+		
+		# Try positions near the path (within 2-4 cells)
+		var offset_distance = randi_range(2, 4)
+		var directions = [
+			Vector2i(offset_distance, 0),
+			Vector2i(-offset_distance, 0),
+			Vector2i(0, offset_distance),
+			Vector2i(0, -offset_distance)
+		]
+		
+		# Shuffle directions for randomness
+		directions.shuffle()
+		
+		for direction in directions:
+			var test_pos = grid_pos + direction
+			
+			# Check if position is valid (floor tile and in bounds)
+			if test_pos.x <= 0 or test_pos.x >= width - 1:
+				continue
+			if test_pos.y <= 0 or test_pos.y >= height - 1:
+				continue
+			if map_data[test_pos.x][test_pos.y] != 0:
+				continue
+			
+			# Check if this position has good line of sight
+			if _has_good_line_of_sight(test_pos):
+				# Convert to world position
+				var grid_map = maze_world.get_node("GridMap")
+				var world_pos = grid_map.map_to_local(Vector3i(test_pos.x, 0, test_pos.y))
+				world_pos.y += 1.5
+				
+				# Check distance from player
+				var player_grid_pos = Vector2i(1, 1)
+				var distance_from_player = Vector2(test_pos.x, test_pos.y).distance_to(Vector2(player_grid_pos.x, player_grid_pos.y))
+				
+				if distance_from_player * cell_size >= 20.0:
+					return world_pos
+	
+	return Vector3.ZERO  # Failed to find good position
+
+func _has_good_line_of_sight(grid_pos: Vector2i) -> bool:
+	# Check if there's a clear corridor in at least one direction
+	var directions = [
+		Vector2i(1, 0),   # Right
+		Vector2i(-1, 0),  # Left
+		Vector2i(0, 1),   # Down
+		Vector2i(0, -1)   # Up
+	]
+	
+	for direction in directions:
+		var clear_tiles = 0
+		var test_pos = grid_pos
+		
+		# Check how many consecutive floor tiles in this direction
+		for distance in range(1, 8):  # Check up to 8 tiles away
+			test_pos = grid_pos + (direction * distance)
+			
+			if test_pos.x <= 0 or test_pos.x >= width - 1:
+				break
+			if test_pos.y <= 0 or test_pos.y >= height - 1:
+				break
+			
+			if map_data[test_pos.x][test_pos.y] == 0:  # Floor tile
+				clear_tiles += 1
+			else:
+				break
+		
+		# If we have at least 4 consecutive floor tiles, this is a good corridor
+		if clear_tiles >= 4:
+			return true
+	
+	return false
+
+func _spawn_enemy_at_grid(scene, x, y, type):
+	var world_pos = maze_world.grid_map.map_to_local(Vector3i(x, 0, y))
+	world_pos.y += 1.5
+	_spawn_enemy_at_world(scene, world_pos, type)
+
+func _spawn_enemy_at_world(scene, pos, type):
+	if scene == null:
+		printerr("EnemySpawner: Scene is null for type: ", type)
+		return
+		
+	var enemy = scene.instantiate()
 	get_parent().add_child(enemy)
+	enemy.global_position = pos
+	active_enemies.append(enemy)
+	print("EnemySpawner: Spawned %s at %s" % [type, pos])
+
+func _get_random_floor_position_away_from_player(min_dist: float) -> Vector3:
+	var player_grid_pos = Vector2i(1, 1)  # Player always spawns at (1,1)
+	var max_attempts = 100
 	
-	print("EnemySpawner: Enemy added to scene tree")
+	for attempt in range(max_attempts):
+		# Pick random grid coordinates
+		var grid_x = randi_range(1, width - 2)
+		var grid_z = randi_range(1, height - 2)
+		
+		# Check if it's a floor tile (0 = floor, 1 = wall)
+		if map_data[grid_x][grid_z] == 0:
+			# Check distance from player
+			var distance_from_player = Vector2(grid_x, grid_z).distance_to(Vector2(player_grid_pos.x, player_grid_pos.y))
+			
+			if distance_from_player * cell_size >= min_dist:
+				# Convert grid to world position using GridMap's map_to_local
+				var grid_map = maze_world.get_node("GridMap")
+				var world_pos = grid_map.map_to_local(Vector3i(grid_x, 0, grid_z))
+				world_pos.y += 1.5  # Add enemy height above floor
+				
+				return world_pos
 	
-	# Set position
-	enemy.global_position = spawn_pos
-	
-	# Random rotation
-	enemy.rotation.y = randf() * TAU
-	
-	return enemy
+	printerr("EnemySpawner: Failed to find valid position after %d attempts" % max_attempts)
+	# Fallback to any random floor position
+	return _get_random_floor_position()
 
 func _get_random_floor_position() -> Vector3:
 	var player_grid_pos = Vector2i(1, 1)  # Player always spawns at (1,1)
@@ -138,25 +254,7 @@ func _get_random_floor_position() -> Vector3:
 				var world_pos = grid_map.map_to_local(Vector3i(grid_x, 0, grid_z))
 				world_pos.y += 1.5  # Add enemy height above floor
 				
-				
 				return world_pos
 	
 	printerr("EnemySpawner: Failed to find valid position after %d attempts" % max_attempts)
 	return Vector3.ZERO
-
-func _assign_patrol_points(chaser: Node3D):
-	if not chaser.has_method("set_patrol_points"):
-		return
-	
-	var num_patrol_points = 4
-	var patrol_points: Array[Vector3] = []
-	
-	# Generate multiple patrol points around the chaser's spawn
-	for i in range(num_patrol_points):
-		var patrol_pos = _get_random_floor_position()
-		if patrol_pos != Vector3.ZERO:
-			patrol_points.append(patrol_pos)
-	
-	if patrol_points.size() > 0:
-		chaser.set_patrol_points(patrol_points)
-		print("Assigned %d patrol points to Chaser" % patrol_points.size())
