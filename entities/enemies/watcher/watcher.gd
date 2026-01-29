@@ -7,6 +7,7 @@ class_name Watcher
 @export var alert_interval: float = 0.5
 @export var eyes_open_duration: float = 5.0
 @export var eyes_closed_duration: float = 2.0
+@export var kill_range: float = 2.0  # Range at which watcher kills player
 
 #nodes
 @onready var vision_area: Area3D = $VisionArea
@@ -65,6 +66,17 @@ func _physics_process(delta):
 			player = EnemyManager.get_player()
 		if player:
 			_check_player_visibility()
+			_check_if_close_enough_to_kill()
+
+func _check_if_close_enough_to_kill():
+	if player == null or not player_currently_visible:
+		return
+	
+	var distance_to_player = global_position.distance_to(player.global_position)
+	
+	# Kill player if they're seen and within kill range
+	if distance_to_player < kill_range:
+		_kill_player()
 
 func _check_player_visibility():
 	if player == null:
@@ -150,3 +162,8 @@ func can_see_player() -> bool:
 func _set_vision_light(enabled: bool):
 	if vision_light:
 		vision_light.visible = enabled
+
+func _kill_player():
+	if player and player.has_method("die"):
+		print("Watcher: KILLED PLAYER!")
+		player.die()

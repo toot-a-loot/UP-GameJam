@@ -12,6 +12,10 @@ class_name Listener
 @export var wander_pause_chance: float = 0.2 #20% chance mu pause
 @export var wander_pause_duration: float = 2.0
 
+# stamina/tired system
+@export var max_chase_duration: float = 4.0 # how long can chase before tired
+@export var tired_duration: float = 2.0 # how long stunned when tired
+
 #nodes
 @onready var hearing_area: Area3D = $HearingArea
 @onready var footstep_sound: AudioStreamPlayer3D = $FootstepSound
@@ -21,13 +25,16 @@ class_name Listener
 @export var walk_speed: float = 6.0
 @export var footstep_chase_sound: AudioStream
 @export var footstep_walk_sound: AudioStream
-@export var footstep_interval: float = 0.3
 
 #state
 var player_in_hearing_range: bool = false
 var last_heard_time: float = 0.0
 var search_timer: float = 0.0
-var footstep_timer: float = 0.0
+
+# stamina state
+var chase_timer: float = 0.0
+var is_tired: bool = false
+var tired_timer: float = 0.0
 
 #wandering
 var wander_direction: Vector3 = Vector3.ZERO
@@ -40,6 +47,9 @@ func _ready():
 	
 	speed = walk_speed
 	can_move = true
+	
+	# Set footstep interval from parent
+	footstep_interval = 0.3
 	
 	print("Listener: Ready at position ", global_position)
 	print("Listener: can_move = ", can_move, " speed = ", speed)
@@ -59,17 +69,53 @@ func _physics_process(delta):
 		player = EnemyManager.get_player()
 		if player:
 			print("Listener: Found player at ", player.global_position)
+	
+	# Handle tired state first - enemy is stunned and cannot move
+	if is_tired:
+		tired_timer -= delta
+		velocity.x = 0
+		velocity.z = 0
+		
+		if tired_timer <= 0:
+			is_tired = false
+			chase_timer = 0.0
+			print("Listener: Recovered from tired state, resuming wander")
+			_choose_new_wander_direction()
+		
+		# Stop footstep sound when tired
+		if footstep_sound and footstep_sound.playing:
+			footstep_sound.stop()
+			
+		# Still apply gravity
+		super._physics_process(delta)
+		return
 			
 	if player:
 		_check_for_footsteps()
+		_check_if_touching_player()
 		
 	if is_chasing:
 		speed = chase_speed
+		chase_timer += delta
+		
+		# Check if tired from chasing too long
+		if chase_timer >= max_chase_duration:
+			print("Listener: Got tired from chasing, entering tired state")
+			is_tired = true
+			tired_timer = tired_duration
+			is_chasing = false
+			speed = walk_speed
+			# Stop immediately
+			velocity.x = 0
+			velocity.z = 0
+			return
+		
 		search_timer -= delta
 		if search_timer <= 0: #lost the player start wander
 			print("Listener: Lost player, resuming wander")
 			speed = walk_speed
 			is_chasing = false
+			chase_timer = 0.0  # Reset chase timer
 			_choose_new_wander_direction()
 			
 	if velocity.length() > 0.1:
@@ -82,6 +128,16 @@ func _physics_process(delta):
 			footstep_sound.stop()
 			
 	super._physics_process(delta)
+
+func _check_if_touching_player():
+	if player == null:
+		return
+	
+	var distance_to_player = global_position.distance_to(player.global_position)
+	
+	# Kill player if within 1.5 units
+	if distance_to_player < 1.5:
+		_kill_player()
 	
 func _play_footstep():
 	if footstep_sound:
@@ -108,12 +164,20 @@ func _check_for_footsteps():
 func _hear_player():
 	if player == null:
 		return
+	
+	# Don't start chasing if tired
+	if is_tired:
+		return
 		
 	var heard_position = player.global_position
 	
 	set_chase_target(heard_position, true)
 	search_timer = memory_duration
-	is_chasing = true
+	
+	# Only start chase if not already chasing (to preserve chase_timer)
+	if not is_chasing:
+		is_chasing = true
+		chase_timer = 0.0  # Reset timer when starting new chase
 	
 func _idle_behavior(delta):
 	if not navigation_ready:
@@ -163,14 +227,27 @@ func _on_hearing_area_body_exited(body: Node3D):
 		print("Listener: Player left hearing range")
 		
 func _on_player_spotted(position: Vector3):
+	# Don't respond to alerts if tired
+	if is_tired:
+		return
+		
 	#receives alert from watcher
 	print("Listener: Received alert from Watcher at ", position)
 	set_chase_target(position, false)
 	search_timer = memory_duration
-	is_chasing = true
+	
+	# Only start chase if not already chasing
+	if not is_chasing:
+		is_chasing = true
+		chase_timer = 0.0
 	
 func can_hear_player() -> bool:
 	if player == null:
 		return false
 	var distance = global_position.distance_to(player.global_position)
 	return distance <= hearing_radius and player.velocity.length() > 0.1
+
+func _kill_player():
+	if player and player.has_method("die"):
+		print("Listener: KILLED PLAYER!")
+		player.die()
