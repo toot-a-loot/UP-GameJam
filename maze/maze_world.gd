@@ -65,14 +65,22 @@ func start_level(level_number: int):
 	# 8. PLACE EXIT TRIGGER
 	spawn_exit_trigger(exit_coords)
 	
+	# 9. SPAWN ENEMIES - Wait for navigation to be ready first
+	await get_tree().create_timer(0.5).timeout
+	spawn_enemies_for_level()
+
+func spawn_enemies_for_level():
 	if has_node("EnemySpawner"):
-		print("DEBUG: Ordering EnemySpawner to start...")
-		$EnemySpawner.start_spawning(map_data, current_width, current_height, grid_map.cell_size.x)
+		print("MazeWorld: Spawning enemies for Level %d..." % current_level)
+		# Pass current_level to the spawner so it can scale enemy counts
+		$EnemySpawner.start_spawning(map_data, current_width, current_height, grid_map.cell_size.x, current_level)
+	else:
+		printerr("MazeWorld: No EnemySpawner found!")
 
 func cleanup_level():
 	grid_map.clear()
 	
-	# NEW: Clear old enemies
+	# Clear old enemies
 	if has_node("EnemySpawner"):
 		$EnemySpawner.clear_enemies()
 
@@ -279,3 +287,8 @@ func setup_navigation():
 	
 	# Bake is not needed because we manually constructed the mesh above
 	print("Navigation mesh created for Level ", current_level)
+
+func get_optimal_path(from: Vector2i, to: Vector2i) -> Array:
+	if astar:
+		return astar.get_id_path(from, to)
+	return []

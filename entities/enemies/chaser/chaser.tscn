@@ -42,5 +42,5 @@ shape = SubResource("SphereShape3D_detection")
 
 [node name="FootstepSound" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("2_footstep_audio")
-unit_size = 18.0
-max_distance = 30.0
+unit_size = 23.0
+max_distance = 40.0
