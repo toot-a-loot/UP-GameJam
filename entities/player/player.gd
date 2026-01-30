@@ -9,7 +9,7 @@ extends CharacterBody3D
 @export var mouse_sensitivity = 0.003
 
 # Timer Settings
-@export var level_time_limit = 120.0
+@export var level_time_limit = 300.0
 var elapsed_time = 0.0
 var time_left = 0.0
 var is_game_active = true

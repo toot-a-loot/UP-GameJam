@@ -67,7 +67,7 @@ func start_level(level_number: int):
 	# 8. PLACE EXIT TRIGGER
 	spawn_exit_trigger(exit_coords)
 	
-	spawn_checkpoints()
+	
 	
 	#spawn enemies, but wait for nav to be ready
 	await get_tree().create_timer(0.5).timeout
@@ -124,33 +124,63 @@ func spawn_or_reset_player():
 		
 	print("Player positioned at: ", world_pos)
 
+# Inside res://maze/maze_world.gd
+
 func spawn_exit_trigger(grid_pos: Vector2i):
-	if exit_area: exit_area.queue_free()
+	# Cleanup old exit if it exists
+	if exit_area: 
+		exit_area.queue_free()
+		exit_area = null
 	
-	exit_area = Area3D.new()
-	exit_area.name = "LevelExitTrigger"
-	add_child(exit_area)
-	
-	# 1. COLLISION SETUP
-	# We set the "Mask" to 2. This means this Area only scans for objects on Layer 2.
-	exit_area.collision_layer = 0   # The trigger itself is invisible to others
-	exit_area.collision_mask = 2    # The trigger ONLY looks for Layer 2 (The Player)
-	
-	var col = CollisionShape3D.new()
-	var box = BoxShape3D.new()
-	# Make it slightly smaller than the cell so it doesn't clip neighbor walls
-	var size_ratio = grid_map.cell_size.x * 0.8 
-	box.size = Vector3(size_ratio, 4.0, size_ratio) 
-	col.shape = box
-	exit_area.add_child(col)
-	
-	# 2. POSITIONING
+	# Calculate the world position for the exit
 	var world_pos = grid_map.map_to_local(Vector3i(grid_pos.x, 0, grid_pos.y))
 	world_pos.y += 1.0
-	exit_area.global_position = world_pos
-	
-	exit_area.body_entered.connect(_on_exit_entered)
-	print("DEBUG: Exit Trigger set. Waiting for Player on Layer 2...")
+
+	# --- LOGIC SPLIT ---
+	# If we are NOT in the final level, use the Checkpoint Object as the exit
+	if current_level < max_levels:
+		if checkpoint_scene:
+			# Instantiate the visual Checkpoint object
+			var cp = checkpoint_scene.instantiate()
+			add_child(cp)
+			cp.global_position = world_pos
+			
+			# IMPORTANT: Connect the 'exit_reached' signal to our level transition
+			# This requires your checkpoint.gd to have "signal exit_reached"
+			if cp.has_signal("exit_reached"):
+				cp.exit_reached.connect(next_level_logic)
+			
+			# Keep a reference so we can delete it during cleanup
+			exit_area = cp 
+			print("Spawned Checkpoint Exit for Level ", current_level)
+		else:
+			printerr("Checkpoint Scene not assigned in Inspector!")
+
+	# If we ARE in the Final Level (3), use the standard invisible win trigger
+	else:
+		exit_area = Area3D.new()
+		exit_area.name = "FinalExitTrigger"
+		add_child(exit_area)
+		exit_area.global_position = world_pos
+		
+		# Collision setup for standard exit
+		exit_area.collision_layer = 0   
+		exit_area.collision_mask = 2    
+		var col = CollisionShape3D.new()
+		var box = BoxShape3D.new()
+		box.size = Vector3(grid_map.cell_size.x * 0.8, 4.0, grid_map.cell_size.x * 0.8) 
+		col.shape = box
+		exit_area.add_child(col)
+		
+		# Connect to the special win handler
+		exit_area.body_entered.connect(_on_final_exit_entered)
+		print("Spawned Final Exit for Level ", current_level)
+
+# Add this helper function for the final level win
+func _on_final_exit_entered(body):
+	if body.is_in_group("player"):
+		print("Final Victory!")
+		call_deferred("game_over_win")
 
 func _on_exit_entered(body):
 	# Ignore the GridMap explicitly if it still slips through
