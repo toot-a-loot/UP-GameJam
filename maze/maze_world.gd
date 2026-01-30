@@ -69,14 +69,14 @@ func start_level(level_number: int):
 	
 	spawn_checkpoints()
 	
-	# 9. SPAWN ENEMIES - Wait for navigation to be ready first
+	#spawn enemies, but wait for nav to be ready
 	await get_tree().create_timer(0.5).timeout
 	spawn_enemies_for_level()
 
 func spawn_enemies_for_level():
 	if has_node("EnemySpawner"):
 		print("MazeWorld: Spawning enemies for Level %d..." % current_level)
-		# Pass current_level to the spawner so it can scale enemy counts
+		#pass current_level to the spawner so it can scale enemy counts
 		$EnemySpawner.start_spawning(map_data, current_width, current_height, grid_map.cell_size.x, current_level)
 	else:
 		printerr("MazeWorld: No EnemySpawner found!")
@@ -84,7 +84,7 @@ func spawn_enemies_for_level():
 func cleanup_level():
 	grid_map.clear()
 	
-	# Clear old enemies
+	#clear old enemies
 	if has_node("EnemySpawner"):
 		$EnemySpawner.clear_enemies()
 

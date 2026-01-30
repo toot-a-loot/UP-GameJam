@@ -1,29 +1,28 @@
 extends EnemyBase
 class_name Chaser
 
-# Wander and detect settings
+#wander and detect settings
 @export var detection_radius: float = 10.0
 @export var give_up_time: float = 5.0
 @export var wander_radius: float = 15.0
 @export var wander_wait_time: float = 2.0
 
-# Nodes
+#nodes
 @onready var detection_area: Area3D = $DetectionArea
 @onready var footstep_sound: AudioStreamPlayer3D = $FootstepSound
 @onready var raycast: RayCast3D = $RayCast3D
 
-# State
+#state
 var player_in_detection_area: bool = false
 var no_stimulus_timer: float = 0.0
 var wander_wait_timer: float = 0.0
-var is_investigating: bool = false  #true if watcher alert
+var is_investigating: bool = false
 
 func _ready():
 	super._ready()
-	speed = 4.5  # Wander speed
+	speed = 5.5
 	can_move = true
 	
-	# Set footstep interval from parent
 	footstep_interval = 0.5
 	
 	if not has_node("RayCast3D"):
@@ -34,29 +33,26 @@ func _ready():
 		add_child(new_ray)
 		raycast = new_ray
 	
-	# Start with a wander point after navigation is ready
+	#start with a wander point
 	await get_tree().create_timer(0.6).timeout
 	if navigation_ready:
 		_pick_random_wander_point()
 	else:
-		# Try again after another delay
 		await get_tree().create_timer(0.4).timeout
 		_pick_random_wander_point()
 
 func _physics_process(delta):
-	# 1. Detect logic
 	if player:
 		_check_for_player_sight()
 		_check_if_touching_player()
 	
-	# 2. State management
 	if is_chasing:
 		no_stimulus_timer += delta
 		if no_stimulus_timer >= give_up_time:
 			is_chasing = false
 			chase_player_directly = false
 			is_investigating = false
-			speed = 4.5
+			speed = 5.5
 			wander_wait_timer = 0.0
 			_pick_random_wander_point()
 	
@@ -76,7 +72,7 @@ func _check_if_touching_player():
 	
 	var distance_to_player = global_position.distance_to(player.global_position)
 	
-	# Kill player if within 1.5 units
+	#kill player if within this range
 	if distance_to_player < 1.5:
 		_kill_player()
 
@@ -92,11 +88,10 @@ func _check_for_player_sight():
 	
 	var dist = global_position.distance_to(player.global_position)
 	
-	# Don't raycast if too far
 	if dist > detection_radius: 
 		return
 	
-	# Raycast check to prevent seeing through walls
+	#raycast to not see through walls
 	var space_state = get_world_3d().direct_space_state
 	var query = PhysicsRayQueryParameters3D.create(
 		global_position + Vector3(0, 1, 0), 
@@ -107,7 +102,7 @@ func _check_for_player_sight():
 	var result = space_state.intersect_ray(query)
 	
 	if result and result.collider == player:
-		# Visible and close
+		#nakitan and duol
 		_start_chase(player.global_position)
 
 func _start_chase(target_pos: Vector3):
@@ -115,9 +110,9 @@ func _start_chase(target_pos: Vector3):
 	if not is_chasing:
 		is_chasing = true
 		is_investigating = false
-		speed = 10.0  # Chasing speed
+		speed = 10.0
 	
-	set_chase_target(target_pos, true)  # true = direct chase
+	set_chase_target(target_pos, true)
 
 func _idle_behavior(_delta):
 	"""
@@ -133,7 +128,7 @@ func _idle_behavior(_delta):
 			wander_wait_timer = 0.0
 			_pick_random_wander_point()
 	
-	# If we somehow lost our target, pick a new one
+	#lose target
 	if chase_target == Vector3.ZERO:
 		_pick_random_wander_point()
 
@@ -141,9 +136,9 @@ func _pick_random_wander_point():
 	if not navigation_ready:
 		return
 	
-	# Generate random direction and distance
-	var random_angle = randf() * TAU  # Random angle in radians
-	var random_distance = randf_range(wander_radius * 0.6, wander_radius)  # 60-100% of radius
+	#generate random distance and angle
+	var random_angle = randf() * TAU
+	var random_distance = randf_range(wander_radius * 0.6, wander_radius)
 	
 	var random_dir = Vector3(
 		cos(random_angle) * random_distance,
@@ -153,34 +148,30 @@ func _pick_random_wander_point():
 	
 	var target_pos = global_position + random_dir
 	
-	# Get closest valid navigation point
 	var map = get_world_3d().navigation_map
 	var valid_point = NavigationServer3D.map_get_closest_point(map, target_pos)
 	
-	# Only set if the point is actually different from current position
 	var distance_to_point = valid_point.distance_to(global_position)
-	if distance_to_point > 3.0:  # At least 3 units away
+	if distance_to_point > 3.0:
 		chase_target = valid_point
 		chase_player_directly = false
 		nav_agent.target_position = valid_point
 	else:
-		# If point is too close, try again
 		await get_tree().create_timer(0.1).timeout
 		_pick_random_wander_point()
 
-# Override to respond to Watcher alerts
 func alert(player_position: Vector3):
 	"""Called by EnemyManager when Watcher spots player"""
 	is_investigating = true
 	no_stimulus_timer = 0.0
-	speed = 5.5  # Investigation speed
-	set_chase_target(player_position, false)  # false = investigate, not direct chase
+	speed = 6.0  # Investigation speed
+	set_chase_target(player_position, false)  #false=investigate
 
 func _on_player_spotted(position: Vector3):
 	"""Called by EnemyManager signal"""
 	is_investigating = true
 	no_stimulus_timer = 0.0
-	speed = 5.5
+	speed = 6.0
 	set_chase_target(position, false)
 
 func _kill_player():

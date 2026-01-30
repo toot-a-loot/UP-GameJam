@@ -13,7 +13,6 @@ var footstep_timer: float = 0.0
 
 #nodes
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
-# Try to find the node, but don't crash if it doesn't exist (optional for Watcher)
 @onready var footstep_audio_player: AudioStreamPlayer3D = get_node_or_null("FootstepSound") 
 
 #stae
@@ -30,7 +29,7 @@ func _ready():
 	call_deferred("_setup_navigation")
 	
 func _setup_navigation():
-	# Wait for physics to settle before querying navigation
+	#wait gamay before setup nav
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	
@@ -42,7 +41,6 @@ func _setup_navigation():
 		nav_agent.avoidance_enabled = true 
 		
 		navigation_ready = true
-		print("%s: Navigation ready at position %v" % [name, global_position])
 	else:
 		printerr("%s: No NavigationAgent3D found!" % name)
 		
@@ -151,7 +149,6 @@ func is_game_active() -> bool:
 	return true
 
 func _kill_player():
-	print(name + " CAUGHT THE PLAYER!")
 	if player.has_method("die"):
 		player.die()
 	set_physics_process(false)

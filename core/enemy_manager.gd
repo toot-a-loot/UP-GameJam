@@ -20,12 +20,11 @@ func unregister_enemy(enemy: Node) -> void:
 func register_player(player_node: CharacterBody3D) -> void:
 	player = player_node
 	
-#option 1: global alert
+#global alert 1st option
 func alert_enemies(spotted_position: Vector3) -> void:
-	print("EnemyManager: Alerting all enemies at position ", spotted_position)
 	player_spotted.emit(spotted_position)
 
-#Option 2: ranged alert
+#ranged alert 2nd option
 func alert_enemies_in_range(spotted_position: Vector3, alert_range: float = 50.0) -> void:
 	for enemy in enemies:
 		if enemy and is_instance_valid(enemy):
