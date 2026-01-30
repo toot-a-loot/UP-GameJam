@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://f2ivvhcd2mos"]
+[gd_scene load_steps=21 format=3 uid="uid://f2ivvhcd2mos"]
 
 [ext_resource type="Script" uid="uid://b8hqqti6jdc8c" path="res://ui/main_menu.gd" id="1_8v85u"]
 [ext_resource type="Script" uid="uid://bor2d5txxv10m" path="res://ui/main_menu_camera.gd" id="1_x262b"]
@@ -11,6 +11,10 @@
 [ext_resource type="PackedScene" uid="uid://b0sjapxhxhqvq" path="res://assets/models/player_models/sanchovich.tscn" id="6_g6r01"]
 [ext_resource type="Shader" uid="uid://dqj7qnwfwhmlw" path="res://shaders/post_processing2D.gdshader" id="8_youui"]
 [ext_resource type="Shader" uid="uid://c8qkcmanwuo1w" path="res://shaders/CRT.gdshader" id="11_58pe3"]
+[ext_resource type="AudioStream" uid="uid://dr14qs3l2x2nc" path="res://assets/audio/mainmenuBGM.wav" id="12_g6r01"]
+[ext_resource type="Script" uid="uid://dujiwatx1a3rg" path="res://assets/audio/main_menu_BGM.gd" id="13_t3nb0"]
+[ext_resource type="AudioStream" uid="uid://bqnhp7l6pimag" path="res://assets/audio/hoverr.wav" id="14_gie3v"]
+[ext_resource type="AudioStream" uid="uid://miadcs6yofv7" path="res://assets/audio/click.wav" id="14_pktai"]
 
 [sub_resource type="Environment" id="Environment_nmrkx"]
 background_energy_multiplier = 3.0
@@ -272,10 +276,32 @@ mouse_filter = 2
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1, 0)
 
+[node name="BGM" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("12_g6r01")
+autoplay = true
+script = ExtResource("13_t3nb0")
+
+[node name="hover" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("14_gie3v")
+volume_db = -10.0
+pitch_scale = 1.3
+
+[node name="click" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("14_pktai")
+volume_db = -15.0
+pitch_scale = 1.3
+
+[connection signal="mouse_entered" from="CanvasLayer/SubViewportContainer/SubViewport/UI/MainMenu/VBoxContainer/StartButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_start_button_mouse_entered"]
 [connection signal="pressed" from="CanvasLayer/SubViewportContainer/SubViewport/UI/MainMenu/VBoxContainer/StartButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_start_button_pressed"]
+[connection signal="mouse_entered" from="CanvasLayer/SubViewportContainer/SubViewport/UI/MainMenu/VBoxContainer/CharacterButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_character_button_mouse_entered"]
 [connection signal="pressed" from="CanvasLayer/SubViewportContainer/SubViewport/UI/MainMenu/VBoxContainer/CharacterButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_character_button_pressed"]
+[connection signal="mouse_entered" from="CanvasLayer/SubViewportContainer/SubViewport/UI/MainMenu/VBoxContainer/ExitButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_exit_button_mouse_entered"]
 [connection signal="pressed" from="CanvasLayer/SubViewportContainer/SubViewport/UI/MainMenu/VBoxContainer/ExitButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_exit_button_pressed"]
+[connection signal="mouse_entered" from="CanvasLayer/SubViewportContainer/SubViewport/UI/CharacterMenu/BackButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_back_button_mouse_entered"]
 [connection signal="pressed" from="CanvasLayer/SubViewportContainer/SubViewport/UI/CharacterMenu/BackButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_back_button_pressed"]
+[connection signal="mouse_entered" from="CanvasLayer/SubViewportContainer/SubViewport/UI/CharacterMenu/HSplitContainer/PrevButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_prev_button_mouse_entered"]
 [connection signal="pressed" from="CanvasLayer/SubViewportContainer/SubViewport/UI/CharacterMenu/HSplitContainer/PrevButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_prev_button_pressed"]
+[connection signal="mouse_entered" from="CanvasLayer/SubViewportContainer/SubViewport/UI/CharacterMenu/HSplitContainer/NextButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_next_button_mouse_entered"]
 [connection signal="pressed" from="CanvasLayer/SubViewportContainer/SubViewport/UI/CharacterMenu/HSplitContainer/NextButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_next_button_pressed"]
+[connection signal="mouse_entered" from="CanvasLayer/SubViewportContainer/SubViewport/UI/CharacterMenu/SelectButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_select_button_mouse_entered"]
 [connection signal="pressed" from="CanvasLayer/SubViewportContainer/SubViewport/UI/CharacterMenu/SelectButton" to="CanvasLayer/SubViewportContainer/SubViewport/UI" method="_on_select_button_pressed"]
