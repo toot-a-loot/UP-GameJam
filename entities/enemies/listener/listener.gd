@@ -267,5 +267,8 @@ func can_hear_player() -> bool:
 	return distance <= hearing_radius and player.velocity.length() > 0.1
 
 func _kill_player():
+	if not is_chasing:
+		return
+	
 	if player and player.has_method("die"):
 		player.die()
