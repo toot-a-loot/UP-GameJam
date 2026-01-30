@@ -5,12 +5,12 @@ extends Node
 @export var listener_scene: PackedScene
 @export var chaser_scene: PackedScene
 
-#spawn config - will be calculated per level
+#spawn config
 var num_watchers: int = 4
 var num_listeners: int = 4
 var num_chasers: int = 4
 
-@export var min_distance_from_player: float = 15.0
+@export var min_distance_from_player: float = 20.0
 
 #reference to maze
 var maze_world: Node3D
@@ -22,7 +22,6 @@ var active_enemies: Array[Node] = []
 var current_level: int = 1
 
 func _ready():
-	# Wait for maze to be ready
 	await get_tree().process_frame
 	_find_maze_reference()
 
@@ -35,30 +34,27 @@ func start_spawning(data: Array, w: int, h: int, grid_size: float, level: int = 
 	cell_size = grid_size
 	current_level = level
 	
-	# Calculate enemy counts based on level
 	_calculate_enemy_counts_for_level(level)
 	
-	# Find maze_world reference if we don't have it
 	if not maze_world:
 		maze_world = get_parent()
 	
 	await get_tree().create_timer(0.5).timeout
 	
-	# Spawn enemies
-	_spawn_all_enemies()
+	_spawn_enemies_balanced()
 
 func _calculate_enemy_counts_for_level(level: int):
 	match level:
 		1:
-			num_watchers = 4; num_listeners = 4; num_chasers = 4
+			num_watchers = 3; num_listeners = 3; num_chasers = 2
 		2:
-			num_watchers = 7; num_listeners = 7; num_chasers = 7
+			num_watchers = 5; num_listeners = 5; num_chasers = 4
 		3:
-			num_watchers = 10; num_listeners = 10; num_chasers = 10
+			num_watchers = 8; num_listeners = 8; num_chasers = 6
 		_:
-			num_watchers = 4 + (level - 1) * 3
-			num_listeners = 4 + (level - 1) * 3
-			num_chasers = 4 + (level - 1) * 3
+			num_watchers = 4 + (level - 1) * 2
+			num_listeners = 4 + (level - 1) * 2
+			num_chasers = 3 + (level - 1) * 2
 
 func clear_enemies():
 	print("EnemySpawner: Clearing %d old enemies." % active_enemies.size())
@@ -66,128 +62,150 @@ func clear_enemies():
 		if is_instance_valid(enemy):
 			enemy.queue_free()
 	active_enemies.clear()
-	
+
 func _find_maze_reference():
 	maze_world = get_parent()
 	if not maze_world.has_method("get_optimal_path"):
 		printerr("EnemySpawner: Parent is not MazeWorld!")
 
-func _spawn_all_enemies():
+func _spawn_enemies_balanced():
 	if not maze_world or map_data.is_empty(): return
-	if width == 0 or height == 0: return
 	
 	var exit_pos = _find_exit_position()
 	if exit_pos == Vector2i(-1, -1): return
-		
+	
 	var path_points = maze_world.astar.get_id_path(Vector2i(1,1), exit_pos)
+	if path_points.size() < 10: return
 	
-	print("EnemySpawner: Spawning %d Watchers, %d Listeners, %d Chasers" % [num_watchers, num_listeners, num_chasers])
+	var enemy_deck = []
+	for i in range(num_watchers): enemy_deck.append("watcher")
+	for i in range(num_listeners): enemy_deck.append("listener")
+	for i in range(num_chasers): enemy_deck.append("chaser")
 	
-	# --- 1. SPAWN CHASERS (Guardians of the Exit) ---
-	# Retained Logic: Last 30% of the maze
-	for i in range(num_chasers):
-		var random_index = randi_range(int(path_points.size() * 0.7), path_points.size() - 2)
-		random_index = clampi(random_index, 0, path_points.size() - 1)
-		var grid_pos = path_points[random_index]
-		_spawn_enemy_at_grid(chaser_scene, grid_pos.x, grid_pos.y, "Chaser_%d" % (i + 1))
-
-	# --- 2. SPAWN WATCHERS (Corridor Sentries) ---
-	# New Logic: Find position AND direction to look
-	for i in range(num_watchers):
-		var spawn_data = _find_watcher_position_and_direction(path_points)
-		
-		if spawn_data.has("pos"):
-			var enemy = _spawn_enemy_at_world(watcher_scene, spawn_data.pos, "Watcher_%d" % (i + 1))
-			if enemy:
-				# IMPORTANT: Look down the corridor
-				var look_target = spawn_data.pos + spawn_data.direction
-				enemy.look_at(look_target, Vector3.UP)
-				enemy.rotation.x = 0 # Keep upright
-				enemy.rotation.z = 0
-		else:
-			# Fallback if no good corridor found
-			var pos = _get_random_floor_position_away_from_player(20.0)
-			_spawn_enemy_at_world(watcher_scene, pos, "Watcher_%d" % (i + 1))
-
-	# --- 3. SPAWN LISTENERS (Roamers) ---
-	# Retained Logic: Middle 20%-60% of path with Jitter
-	for i in range(num_listeners):
-		var random_index = randi_range(int(path_points.size() * 0.2), int(path_points.size() * 0.6))
-		random_index = clampi(random_index, 0, path_points.size() - 1)
-		var grid_pos = path_points[random_index] 
-		
-		# Add jitter
-		grid_pos.x += randi_range(-2, 2)
-		grid_pos.y += randi_range(-2, 2)
-		
-		if _is_valid_floor(grid_pos):
-			_spawn_enemy_at_grid(listener_scene, grid_pos.x, grid_pos.y, "Listener_%d" % (i + 1))
-		else:
-			# Fallback
-			var pos = _get_random_floor_position_away_from_player(15.0)
-			_spawn_enemy_at_world(listener_scene, pos, "Listener_%d" % (i + 1))
-
-# --- Helper to validate grid positions ---
-func _is_valid_floor(pos: Vector2i) -> bool:
-	if pos.x <= 0 or pos.x >= width - 1: return false
-	if pos.y <= 0 or pos.y >= height - 1: return false
-	return map_data[pos.x][pos.y] == 0
-
-# --- NEW: Smart Watcher Placement Logic ---
-func _find_watcher_position_and_direction(path_points: Array) -> Dictionary:
-	var max_attempts = 30
+	enemy_deck.shuffle()
 	
-	for attempt in range(max_attempts):
-		# Pick random spot near path (using 30% to 80% range from original)
-		var path_idx = randi_range(int(path_points.size() * 0.3), int(path_points.size() * 0.8))
-		path_idx = clampi(path_idx, 0, path_points.size() - 1)
-		var grid_pos = path_points[path_idx]
+	var total_enemies = enemy_deck.size()
+	if total_enemies == 0: return
+
+	var start_index = int(path_points.size() * 0.15) 
+	var valid_path_length = path_points.size() - start_index
+	var segment_size = valid_path_length / float(total_enemies)
+	
+	print("EnemySpawner: Spawning %d enemies over %d segments." % [total_enemies, valid_path_length])
+
+	for i in range(total_enemies):
+		var enemy_type = enemy_deck[i]
 		
-		# Jitter nearby to find corners/halls
-		grid_pos.x += randi_range(-3, 3)
-		grid_pos.y += randi_range(-3, 3)
+		var seg_start = start_index + (i * segment_size)
+		var seg_end = seg_start + segment_size
 		
-		if not _is_valid_floor(grid_pos): continue
+		var random_idx = randi_range(int(seg_start), int(seg_end))
+		random_idx = clampi(random_idx, start_index, path_points.size() - 2)
 		
-		# Check which way creates the longest sightline
-		var best_dir = _get_longest_sight_direction(grid_pos)
+		var grid_pos = path_points[random_idx]
 		
-		if best_dir != Vector3.ZERO:
-			# We found a good spot!
-			var grid_map = maze_world.get_node("GridMap")
-			var world_pos = grid_map.map_to_local(Vector3i(grid_pos.x, 0, grid_pos.y))
-			world_pos.y += 1.5
-			return {"pos": world_pos, "direction": best_dir}
+		var attempts = 0
+		var valid_spawn_found = false
+		
+		while attempts < 10:
+			var test_pos = grid_pos
+			test_pos.x += randi_range(-3, 3)
+			test_pos.y += randi_range(-3, 3)
 			
-	return {}
+			if _is_valid_floor(test_pos) and _is_safe_distance_from_player(test_pos):
+				if enemy_type == "watcher":
+					var sight_info = _get_watcher_alignment(test_pos)
+					if sight_info.valid:
+						_spawn_watcher(test_pos, sight_info.direction, i)
+						valid_spawn_found = true
+						break
+				else:
+					_spawn_generic(test_pos, enemy_type, i) 
+					valid_spawn_found = true
+					break
+			attempts += 1
+		
+		if not valid_spawn_found and _is_safe_distance_from_player(grid_pos):
+			if enemy_type == "watcher":
+				var scan_res = _scan_area_for_watcher_spot(grid_pos)
+				if scan_res.valid:
+					_spawn_watcher(scan_res.pos, scan_res.direction, i)
+				else:
+					_spawn_generic(grid_pos, enemy_type, i)
+			else:
+				_spawn_generic(grid_pos, enemy_type, i)
 
-func _get_longest_sight_direction(grid_pos: Vector2i) -> Vector3:
-	var directions = {
-		Vector2i(1, 0): Vector3.RIGHT,
-		Vector2i(-1, 0): Vector3.LEFT,
-		Vector2i(0, 1): Vector3.BACK,
-		Vector2i(0, -1): Vector3.FORWARD
-	}
+func _spawn_watcher(grid_pos: Vector2i, direction: Vector3, index: int):
+	var grid_map = maze_world.get_node("GridMap")
+	var world_pos = grid_map.map_to_local(Vector3i(grid_pos.x, 0, grid_pos.y))
+	world_pos.y += 1.5
+	
+	var enemy = _spawn_enemy_at_world(watcher_scene, world_pos, "Watcher_%d" % index)
+	if enemy:
+		var look_target = world_pos + direction
+		enemy.look_at(look_target, Vector3.UP)
+		enemy.rotation.x = 0
+		enemy.rotation.z = 0
+
+func _spawn_generic(grid_pos: Vector2i, type: String, index: int):
+	var scene = listener_scene if type == "listener" else chaser_scene
+	var name_prefix = "Listener" if type == "listener" else "Chaser"
+	_spawn_enemy_at_grid(scene, grid_pos.x, grid_pos.y, "%s_%d" % [name_prefix, index])
+
+func _scan_area_for_watcher_spot(center: Vector2i) -> Dictionary:
+	for x in range(-2, 3):
+		for y in range(-2, 3):
+			var check_pos = center + Vector2i(x, y)
+			if _is_valid_floor(check_pos):
+				var alignment = _get_watcher_alignment(check_pos)
+				if alignment.valid:
+					return {"valid": true, "pos": check_pos, "direction": alignment.direction}
+	return {"valid": false}
+
+func _get_watcher_alignment(grid_pos: Vector2i) -> Dictionary:
+	var directions = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+	var world_dirs = [Vector3.RIGHT, Vector3.LEFT, Vector3.BACK, Vector3.FORWARD]
 	
 	var best_dir = Vector3.ZERO
 	var max_len = 0
 	
-	for dir_vec in directions:
+	for i in range(directions.size()):
+		var dir_vec = directions[i]
 		var current_len = 0
-		# Look up to 10 tiles away to see if it's a "Corridor"
-		for dist in range(1, 10): 
+		for dist in range(1, 12): 
 			var test_pos = grid_pos + (dir_vec * dist)
 			if _is_valid_floor(test_pos):
 				current_len += 1
 			else:
 				break
 		
-		# Requirement: At least 4 tiles of visibility to matter
 		if current_len >= 4 and current_len > max_len:
 			max_len = current_len
-			best_dir = directions[dir_vec]
+			best_dir = world_dirs[i]
 			
-	return best_dir
+	if max_len >= 4:
+		return {"valid": true, "direction": best_dir}
+	return {"valid": false}
+
+func _is_safe_distance_from_player(grid_pos: Vector2i) -> bool:
+	var grid_map = maze_world.get_node("GridMap")
+	var enemy_world_pos = grid_map.map_to_local(Vector3i(grid_pos.x, 0, grid_pos.y))
+	
+	var player_node = get_tree().get_first_node_in_group("player")
+	var player_pos = Vector3.ZERO
+	
+	if player_node:
+		player_pos = player_node.global_position
+	else:
+		player_pos = grid_map.map_to_local(Vector3i(1, 0, 1))
+		
+	var dist = enemy_world_pos.distance_to(player_pos)
+	return dist > min_distance_from_player
+
+func _is_valid_floor(pos: Vector2i) -> bool:
+	if pos.x <= 0 or pos.x >= width - 1: return false
+	if pos.y <= 0 or pos.y >= height - 1: return false
+	return map_data[pos.x][pos.y] == 0
 
 func _find_exit_position() -> Vector2i:
 	for y in range(height - 1, 0, -1):
@@ -200,51 +218,18 @@ func _find_exit_position() -> Vector2i:
 		if map_data[0][y] == 0: return Vector2i(0, y)
 	return Vector2i(-1, -1)
 
-func _spawn_enemy_at_grid(scene, x, y, type):
+func _spawn_enemy_at_grid(scene, x, y, name_str):
 	if not maze_world or not maze_world.has_node("GridMap"): return
 	var grid_map = maze_world.get_node("GridMap")
 	var world_pos = grid_map.map_to_local(Vector3i(x, 0, y))
 	world_pos.y += 1.5
-	_spawn_enemy_at_world(scene, world_pos, type)
+	_spawn_enemy_at_world(scene, world_pos, name_str)
 
-func _spawn_enemy_at_world(scene, pos, type) -> Node:
+func _spawn_enemy_at_world(scene, pos, name_str) -> Node:
 	if scene == null: return null
 	var enemy = scene.instantiate()
 	get_parent().add_child(enemy)
 	enemy.global_position = pos
+	enemy.name = name_str
 	active_enemies.append(enemy)
-	print("EnemySpawner: Spawned %s at %s" % [type, pos])
 	return enemy
-
-func _get_random_floor_position_away_from_player(min_dist: float) -> Vector3:
-	var player_grid_pos = Vector2i(1, 1)
-	var max_attempts = 100
-	
-	for attempt in range(max_attempts):
-		var grid_x = randi_range(1, width - 2)
-		var grid_z = randi_range(1, height - 2)
-		
-		if map_data[grid_x][grid_z] == 0:
-			var distance_from_player = Vector2(grid_x, grid_z).distance_to(Vector2(player_grid_pos.x, player_grid_pos.y))
-			if distance_from_player * cell_size >= min_dist:
-				var grid_map = maze_world.get_node("GridMap")
-				var world_pos = grid_map.map_to_local(Vector3i(grid_x, 0, grid_z))
-				world_pos.y += 1.5 
-				return world_pos
-	
-	return _get_random_floor_position()
-
-func _get_random_floor_position() -> Vector3:
-	var player_grid_pos = Vector2i(1, 1)
-	var max_attempts = 100
-	for attempt in range(max_attempts):
-		var grid_x = randi_range(1, width - 2)
-		var grid_z = randi_range(1, height - 2)
-		if map_data[grid_x][grid_z] == 0:
-			var distance_from_player = Vector2(grid_x, grid_z).distance_to(Vector2(player_grid_pos.x, player_grid_pos.y))
-			if distance_from_player * cell_size >= min_distance_from_player:
-				var grid_map = maze_world.get_node("GridMap")
-				var world_pos = grid_map.map_to_local(Vector3i(grid_x, 0, grid_z))
-				world_pos.y += 1.5
-				return world_pos
-	return Vector3.ZERO

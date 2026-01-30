@@ -3,7 +3,7 @@ class_name Chaser
 
 #wander and detect settings
 @export var detection_radius: float = 10.0
-@export var give_up_time: float = 5.0
+@export var give_up_time: float = 3.0
 @export var wander_radius: float = 15.0
 @export var wander_wait_time: float = 2.0
 
@@ -110,7 +110,7 @@ func _start_chase(target_pos: Vector3):
 	if not is_chasing:
 		is_chasing = true
 		is_investigating = false
-		speed = 10.0
+		speed = 9.0
 	
 	set_chase_target(target_pos, true)
 
@@ -164,7 +164,7 @@ func alert(player_position: Vector3):
 	"""Called by EnemyManager when Watcher spots player"""
 	is_investigating = true
 	no_stimulus_timer = 0.0
-	speed = 6.0  # Investigation speed
+	speed = 6.0  #investigation speed
 	set_chase_target(player_position, false)  #false=investigate
 
 func _on_player_spotted(position: Vector3):

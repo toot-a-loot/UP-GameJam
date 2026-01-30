@@ -5,8 +5,8 @@ class_name Listener
 #faster than player, only detects footsteps or watcher alerts
 
 #hearing settings
-@export var hearing_radius: float = 20.0
-@export var memory_duration: float = 0.08
+@export var hearing_radius: float = 16.0
+@export var memory_duration: float = 0.2
 
 #wandering settings
 @export var wander_distance_min: float = 10.0
@@ -16,15 +16,15 @@ class_name Listener
 
 #stamina para di forever mu chase
 @export var max_chase_duration: float = 3.5 
-@export var tired_duration: float = 1.5 
+@export var tired_duration: float = 2.0
 
 #nodes
 @onready var hearing_area: Area3D = $HearingArea
 @onready var footstep_sound: AudioStreamPlayer3D = $FootstepSound
 
 #footstep
-@export var chase_speed: float = 15.5
-@export var walk_speed: float = 11.0
+@export var chase_speed: float = 14.0
+@export var walk_speed: float = 7.0
 @export var footstep_chase_sound: AudioStream
 @export var footstep_walk_sound: AudioStream
 
