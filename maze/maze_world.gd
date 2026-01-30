@@ -37,8 +37,8 @@ func start_level(level_number: int):
 	
 	# 2. SETUP DIMENSIONS: Increase size slightly per level (optional)
 	# Level 1 uses base size. Level 2 adds 4 tiles, etc.
-	current_width = base_width + ((level_number - 1) * 4)
-	current_height = base_height + ((level_number - 1) * 4)
+	current_width = base_width + ((level_number - 1) * 3)
+	current_height = base_height + ((level_number - 1) * 3)
 	
 	# 3. INITIALIZE DATA: Fill map with walls (1)
 	map_data = []

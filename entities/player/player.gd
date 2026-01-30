@@ -233,7 +233,7 @@ func _physics_process(delta):
 		velocity.z = 0
 
 	move_and_slide()
-	check_looking_down()
+	check_looking_up()
 	update_minimap_marker()
 
 # --- VISUAL HELPERS ---
@@ -264,10 +264,10 @@ func initialize_minimap(map_data: Array, w: int, h: int, grid_cell_size: float =
 	var tex = ImageTexture.create_from_image(img)
 	map_texture_rect.texture = tex
 	
-func check_looking_down():
+func check_looking_up():
 	var _forward = camera.global_transform.basis.z
 	var look_dir = -camera.global_transform.basis.z
-	var dot = look_dir.dot(Vector3.DOWN)
+	var dot = look_dir.dot(Vector3.UP)
 	
 	if dot > 0.85:
 		minimap_container.visible = true
