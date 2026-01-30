@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://creiyraf2vk0q"]
+[gd_scene load_steps=8 format=3 uid="uid://creiyraf2vk0q"]
 
 [ext_resource type="Script" uid="uid://c8077kt23rwyr" path="res://entities/enemies/watcher/watcher.gd" id="1_watcher"]
 [ext_resource type="AudioStream" uid="uid://575h8lm3fd21" path="res://assets/audio/IKAY CLOCKWORK.mp3" id="2_alert_audio"]
+[ext_resource type="PackedScene" uid="uid://db7tdsjuo6gtb" path="res://assets/models/monsters/watching you from my yard.tscn" id="3_ar1c6"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -28,6 +29,7 @@ shape = SubResource("CapsuleShape3D_body")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+visible = false
 mesh = SubResource("CapsuleMesh_watcher")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
@@ -58,9 +60,11 @@ shadow_normal_bias = 2.0
 shadow_blur = 2.0
 spot_range = 20.0
 spot_attenuation = 0.5
-spot_angle = 45.0
 
 [node name="AlertSound" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("2_alert_audio")
 unit_size = 45.0
 max_distance = 120.0
+
+[node name="eye" parent="." instance=ExtResource("3_ar1c6")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.9, 0)

@@ -6,6 +6,8 @@
 
 [node name="MazeWorld" type="Node3D"]
 script = ExtResource("1_63eu4")
+base_width = 15
+base_height = 15
 removal_chance = 0.22
 
 [node name="GridMap" type="GridMap" parent="."]

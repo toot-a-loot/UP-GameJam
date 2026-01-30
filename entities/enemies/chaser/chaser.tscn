@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://gglcskpcdf6j"]
+[gd_scene load_steps=8 format=3 uid="uid://gglcskpcdf6j"]
 
 [ext_resource type="Script" uid="uid://jamsjk3myblm" path="res://entities/enemies/chaser/chaser.gd" id="1_chaser"]
 [ext_resource type="AudioStream" uid="uid://opgn43pelq3v" path="res://assets/audio/Heavy footsteps.mp3" id="2_footstep_audio"]
+[ext_resource type="PackedScene" uid="uid://clcf68pre7bku" path="res://assets/models/monsters/i walk the lonely road.tscn" id="2_sa3ne"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -29,12 +30,17 @@ shape = SubResource("CapsuleShape3D_body")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+visible = false
 mesh = SubResource("CapsuleMesh_chaser")
+
+[node name="walker" parent="." instance=ExtResource("2_sa3ne")]
+transform = Transform3D(2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.5
 
 [node name="DetectionArea" type="Area3D" parent="."]
+visible = false
 collision_mask = 3
 
 [node name="DetectionRadius" type="CollisionShape3D" parent="DetectionArea"]
