@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://ypressxy4i2a" path="res://entities/enemies/listener/listener.gd" id="1_listener"]
 [ext_resource type="AudioStream" uid="uid://kmcany7plqph" path="res://assets/audio/Fast running sound effect for monster.mp3" id="2_footstep_audio"]
 [ext_resource type="AudioStream" uid="uid://cnvnayvp0hxls" path="res://assets/audio/walking.mp3" id="3_j15k5"]
-[ext_resource type="PackedScene" uid="uid://cceywqp4tediw" path="res://entities/enemies/listener/listener_model.tscn" id="4_6whp7"]
+[ext_resource type="PackedScene" uid="uid://cceywqp4tediw" path="res://assets/models/base_models/listener_model.tscn" id="4_6whp7"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.43359375
@@ -19,11 +19,11 @@ footstep_chase_sound = ExtResource("2_footstep_audio")
 footstep_walk_sound = ExtResource("3_j15k5")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1.4, 0, 0, 0, -6.119594e-08, -1.4, 0, 1.4, -6.119594e-08, 0, 1.4005964, 1.2041327)
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 1.5549667)
 shape = SubResource("CapsuleShape3D_body")
 
 [node name="crawler monster" parent="." instance=ExtResource("4_6whp7")]
-transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0.5, 0)
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, -0.3, 0)
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.5

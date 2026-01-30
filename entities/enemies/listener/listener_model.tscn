@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://cceywqp4tediw"]
-
-[ext_resource type="PackedScene" uid="uid://dg2m5gwa4l47d" path="res://assets/models/monsters/crawler monster.fbx" id="1_pifg1"]
-
-[node name="crawler monster" instance=ExtResource("1_pifg1")]
-
-[node name="AnimationPlayer" parent="." index="1"]
-autoplay = "mixamo_com"

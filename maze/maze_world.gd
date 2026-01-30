@@ -263,7 +263,7 @@ func setup_navigation():
 	
 	var nav_mesh = NavigationMesh.new()
 	nav_mesh.agent_height = 2.0
-	nav_mesh.agent_radius = 1.0
+	nav_mesh.agent_radius = 1.5
 	
 	var vertices = PackedVector3Array()
 	var polygons = []

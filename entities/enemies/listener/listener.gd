@@ -23,7 +23,7 @@ class_name Listener
 
 #footstep
 @export var chase_speed: float = 15.5
-@export var walk_speed: float = 6.0
+@export var walk_speed: float = 11.0
 @export var footstep_chase_sound: AudioStream
 @export var footstep_walk_sound: AudioStream
 
@@ -64,6 +64,26 @@ func _ready():
 	else:
 		printerr("Listener: No HearingArea found!")
 		
+	var hitbox = Area3D.new()
+	hitbox.name = "KillHitbox"
+	hitbox.collision_layer = 0  # Doesn't interact with world
+	hitbox.collision_mask = 2   # Only detects player (Layer 2)
+	
+	var collision = CollisionShape3D.new()
+	var shape = CapsuleShape3D.new()
+	shape.radius = 1.5
+	shape.height = 2.0
+	collision.shape = shape
+	
+	hitbox.add_child(collision)
+	add_child(hitbox)
+	
+	hitbox.body_entered.connect(_on_kill_hitbox_entered)
+		
+func _on_kill_hitbox_entered(body: Node3D):
+	if body.is_in_group("player"):
+		_kill_player()		
+	
 func _physics_process(delta):
 	if player == null:
 		player = EnemyManager.get_player()
@@ -89,7 +109,6 @@ func _physics_process(delta):
 			
 	if player:
 		_check_for_footsteps()
-		_check_if_touching_player()
 		
 	if is_chasing:
 		speed = chase_speed
@@ -141,9 +160,7 @@ func _check_if_touching_player():
 		return
 	
 	var distance_to_player = global_position.distance_to(player.global_position)
-	
-	# Kill player if within 1.5 units
-	if distance_to_player < 1.5:
+	if distance_to_player < 2.0:
 		_kill_player()
 	
 func _play_footstep():
