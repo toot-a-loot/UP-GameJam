@@ -17,6 +17,11 @@ const INGAME = preload("uid://bcvlx6vixaf87")
 # --- Configuration ---
 @export var transition_duration: float = 1.5
 
+# audio stuffs
+@onready var hover: AudioStreamPlayer = $"../../../../hover"
+@onready var click: AudioStreamPlayer = $"../../../../click"
+
+
 # COORDINATES: Adjust these numbers to fit your specific scene visually
 # 1. Main Menu View
 var cam_pos_main = Vector3(-0.15, 2.6, 2.0)
@@ -79,27 +84,35 @@ func tween_transition(obj, property, target_val):
 
 # Main Menu Buttons
 func _on_start_button_pressed() -> void:
+	click.play()
 	get_tree().change_scene_to_packed(INGAME)
+	
 
 func _on_character_button_pressed() -> void:
+	click.play()
 	switch_to_char_menu()
 
 func _on_exit_button_pressed() -> void:
+	click.play()
 	get_tree().quit()
 
 # Character Menu Buttons
-func _on_prev_button_pressed() -> void: # Connect BtnPrev
+func _on_prev_button_pressed() -> void:
+	click.play()
 	current_index = (current_index - 1 + character_scenes.size()) % character_scenes.size()
 	update_character_model()
 
-func _on_next_button_pressed() -> void: # Connect BtnNext
+func _on_next_button_pressed() -> void:
+	click.play()
 	current_index = (current_index + 1) % character_scenes.size()
 	update_character_model()
 
-func _on_back_button_pressed() -> void: # Connect BtnBack
+func _on_back_button_pressed() -> void:
+	click.play()
 	switch_to_main_menu()
 
-func _on_select_button_pressed() -> void: # Connect BtnSelect
+func _on_select_button_pressed() -> void:
+	click.play() 
 	switch_to_main_menu()
 
 # --- Model Swapping ---
@@ -118,3 +131,30 @@ func update_character_model() -> void:
 	if character_scenes.size() > current_index and character_scenes[current_index]:
 		var new_model = character_scenes[current_index].instantiate()
 		character_pivot.add_child(new_model)
+
+# hover sfx things
+func _on_select_button_mouse_entered() -> void:
+	hover.play()
+
+
+func _on_prev_button_mouse_entered() -> void:
+	hover.play()
+
+
+func _on_next_button_mouse_entered() -> void:
+	hover.play()
+
+
+func _on_back_button_mouse_entered() -> void:
+	hover.play()
+
+
+func _on_start_button_mouse_entered() -> void:
+	hover.play()
+
+func _on_character_button_mouse_entered() -> void:
+	hover.play()
+
+
+func _on_exit_button_mouse_entered() -> void:
+	hover.play()
