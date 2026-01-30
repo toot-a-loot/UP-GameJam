@@ -10,7 +10,7 @@ var num_watchers: int = 4
 var num_listeners: int = 4
 var num_chasers: int = 4
 
-@export var min_distance_from_player: float = 20.0
+@export var min_distance_from_player: float = 35.0
 
 #reference to maze
 var maze_world: Node3D
@@ -107,12 +107,15 @@ func _spawn_enemies_balanced():
 		var attempts = 0
 		var valid_spawn_found = false
 		
-		while attempts < 10:
+		while attempts < 20:
 			var test_pos = grid_pos
-			test_pos.x += randi_range(-3, 3)
-			test_pos.y += randi_range(-3, 3)
+			# Search a wider area to find rooms or intersections
+			test_pos.x += randi_range(-4, 4)
+			test_pos.y += randi_range(-4, 4)
 			
-			if _is_valid_floor(test_pos) and _is_safe_distance_from_player(test_pos):
+			# CRITICAL CHANGE: Added "not _is_chokepoint(test_pos)"
+			if _is_valid_floor(test_pos) and _is_safe_distance_from_player(test_pos) and not _is_chokepoint(test_pos):
+				
 				if enemy_type == "watcher":
 					var sight_info = _get_watcher_alignment(test_pos)
 					if sight_info.valid:
@@ -125,15 +128,8 @@ func _spawn_enemies_balanced():
 					break
 			attempts += 1
 		
-		if not valid_spawn_found and _is_safe_distance_from_player(grid_pos):
-			if enemy_type == "watcher":
-				var scan_res = _scan_area_for_watcher_spot(grid_pos)
-				if scan_res.valid:
-					_spawn_watcher(scan_res.pos, scan_res.direction, i)
-				else:
-					_spawn_generic(grid_pos, enemy_type, i)
-			else:
-				_spawn_generic(grid_pos, enemy_type, i)
+		if not valid_spawn_found:
+			print("EnemySpawner: Skipped enemy %d (Could not find non-chokepoint spawn)." % i)
 
 func _spawn_watcher(grid_pos: Vector2i, direction: Vector3, index: int):
 	var grid_map = maze_world.get_node("GridMap")
@@ -192,15 +188,22 @@ func _is_safe_distance_from_player(grid_pos: Vector2i) -> bool:
 	var enemy_world_pos = grid_map.map_to_local(Vector3i(grid_pos.x, 0, grid_pos.y))
 	
 	var player_node = get_tree().get_first_node_in_group("player")
-	var player_pos = Vector3.ZERO
-	
-	if player_node:
-		player_pos = player_node.global_position
-	else:
-		player_pos = grid_map.map_to_local(Vector3i(1, 0, 1))
+	var player_pos = player_node.global_position if player_node else Vector3.ZERO
 		
 	var dist = enemy_world_pos.distance_to(player_pos)
-	return dist > min_distance_from_player
+	
+	if dist < min_distance_from_player:
+		return false
+		
+	#dont spawn if the player can literally see them spawn
+	var space_state = maze_world.get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(player_pos + Vector3(0, 1, 0), enemy_world_pos + Vector3(0, 1, 0))
+	var result = space_state.intersect_ray(query)
+	
+	if result.is_empty():
+		return false
+		
+	return true
 
 func _is_valid_floor(pos: Vector2i) -> bool:
 	if pos.x <= 0 or pos.x >= width - 1: return false
@@ -233,3 +236,14 @@ func _spawn_enemy_at_world(scene, pos, name_str) -> Node:
 	enemy.name = name_str
 	active_enemies.append(enemy)
 	return enemy
+func _is_chokepoint(pos: Vector2i) -> bool:
+	var floor_neighbors = 0
+	
+	var neighbors = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
+	
+	for n in neighbors:
+		var check = pos + n
+		if _is_valid_floor(check):
+			floor_neighbors += 1
+			
+	return floor_neighbors <= 2
