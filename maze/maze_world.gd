@@ -61,6 +61,10 @@ func start_level(level_number: int):
 	setup_astar()
 	setup_navigation()
 	
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	# --------------------
+	
 	# 7. PLACE PLAYER
 	spawn_or_reset_player()
 	
@@ -71,7 +75,7 @@ func start_level(level_number: int):
 	
 	#spawn enemies, but wait for nav to be ready
 	await get_tree().create_timer(0.5).timeout
-	spawn_enemies_for_level()
+	#spawn_enemies_for_level()
 
 func spawn_enemies_for_level():
 	if has_node("EnemySpawner"):
@@ -113,8 +117,15 @@ func spawn_or_reset_player():
 	if not player_instance:
 		player_instance = player_scene.instantiate()
 		add_child(player_instance)
+		
 	
+	if player_instance.is_class("CharacterBody3D"):
+		player_instance.velocity = Vector3.ZERO
+		
 	player_instance.global_position = world_pos
+	
+	if player_instance.has_method("show_message"):
+		player_instance.show_message("LEVEL %d" % current_level)
 	
 	# Reset rotation (optional, so they face forward)
 	player_instance.rotation = Vector3.ZERO
@@ -127,60 +138,79 @@ func spawn_or_reset_player():
 # Inside res://maze/maze_world.gd
 
 func spawn_exit_trigger(grid_pos: Vector2i):
-	# Cleanup old exit if it exists
+	# Cleanup old exit
 	if exit_area: 
 		exit_area.queue_free()
 		exit_area = null
 	
-	# Calculate the world position for the exit
+	# Calculate Position
 	var world_pos = grid_map.map_to_local(Vector3i(grid_pos.x, 0, grid_pos.y))
 	world_pos.y += 1.0
 
-	# --- LOGIC SPLIT ---
-	# If we are NOT in the final level, use the Checkpoint Object as the exit
+	# --- LEVEL 1 & 2: CHECKPOINT EXIT ---
 	if current_level < max_levels:
 		if checkpoint_scene:
-			# Instantiate the visual Checkpoint object
 			var cp = checkpoint_scene.instantiate()
 			add_child(cp)
 			cp.global_position = world_pos
 			
-			# IMPORTANT: Connect the 'exit_reached' signal to our level transition
-			# This requires your checkpoint.gd to have "signal exit_reached"
 			if cp.has_signal("exit_reached"):
 				cp.exit_reached.connect(next_level_logic)
 			
-			# Keep a reference so we can delete it during cleanup
 			exit_area = cp 
 			print("Spawned Checkpoint Exit for Level ", current_level)
 		else:
-			printerr("Checkpoint Scene not assigned in Inspector!")
+			printerr("Checkpoint Scene not assigned!")
 
-	# If we ARE in the Final Level (3), use the standard invisible win trigger
+	# --- LEVEL 3: FINAL WIN BOX ---
 	else:
 		exit_area = Area3D.new()
 		exit_area.name = "FinalExitTrigger"
 		add_child(exit_area)
 		exit_area.global_position = world_pos
 		
-		# Collision setup for standard exit
+		# 1. COLLISION (CRITICAL FIX)
+		# Look for Layer 1 (Default Player Layer)
 		exit_area.collision_layer = 0   
-		exit_area.collision_mask = 2    
+		exit_area.collision_mask = 3
+		
 		var col = CollisionShape3D.new()
-		var box = BoxShape3D.new()
-		box.size = Vector3(grid_map.cell_size.x * 0.8, 4.0, grid_map.cell_size.x * 0.8) 
-		col.shape = box
+		var box_shape = BoxShape3D.new()
+		box_shape.size = Vector3(1.5, 1.5, 1.5) # Nice big hit area
+		col.shape = box_shape
 		exit_area.add_child(col)
 		
-		# Connect to the special win handler
+		# 2. VISUALS (NEW)
+		# Add a mesh so you can actually SEE the goal
+		var mesh_instance = MeshInstance3D.new()
+		var box_mesh = BoxMesh.new()
+		box_mesh.size = Vector3(1.0, 1.0, 1.0)
+		
+		# Give it a "Gold" color material
+		var material = StandardMaterial3D.new()
+		material.albedo_color = Color(1.0, 0.84, 0.0) # Gold
+		material.emission_enabled = true
+		material.emission = Color(1.0, 0.84, 0.0)
+		material.emission_energy_multiplier = 2.0
+		
+		box_mesh.material = material
+		mesh_instance.mesh = box_mesh
+		exit_area.add_child(mesh_instance)
+		
+		# 3. CONNECT LOGIC
 		exit_area.body_entered.connect(_on_final_exit_entered)
-		print("Spawned Final Exit for Level ", current_level)
+		print("Spawned FINAL GOLD BOX for Level ", current_level)
 
-# Add this helper function for the final level win
+# Helper for the final win
 func _on_final_exit_entered(body):
-	if body.is_in_group("player"):
-		print("Final Victory!")
+	# Debug print to prove it works
+	print("Hit Final Trigger! Body: ", body.name)
+	
+	# Check if it's the player (or just assume it is if mask is 1)
+	if body.name == "Player" or body.is_in_group("player"):
+		print("VICTORY DETECTED!")
 		call_deferred("game_over_win")
+
 
 func _on_exit_entered(body):
 	# Ignore the GridMap explicitly if it still slips through
@@ -207,6 +237,9 @@ func game_over_win():
 	print("   YOU BEAT ALL 3 MAZES!        ")
 	print("################################")
 	# Here you could get_tree().quit() or load a 'Victory' scene
+	if player_instance and player_instance.has_method("win_game"):
+		player_instance.win_game()
+		
 	set_process(false) # Stop game logic if necessary
 
 # --- Generation Logic (Updated to use current_width/height) ---
