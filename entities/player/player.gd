@@ -10,6 +10,7 @@ extends CharacterBody3D
 
 # Timer Settings
 @export var level_time_limit = 120.0
+var elapsed_time = 0.0
 var time_left = 0.0
 var is_game_active = true
 var is_dead = false
@@ -135,6 +136,7 @@ func _physics_process(delta):
 		
 	if is_game_active:
 		time_left -= delta
+		elapsed_time += delta
 		var minutes = floor(time_left / 60)
 		var seconds = int(time_left) % 60
 		timer_label.text = "%02d:%02d" % [minutes, seconds]
@@ -264,6 +266,15 @@ func toggle_pause():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if pause_screen: pause_screen.visible = false
 
+# --- ADD TIME FUNCTION ---
+func add_time(amount: float):
+	time_left += amount
+	# Update the UI immediately to show the change
+	var minutes = floor(time_left / 60)
+	var seconds = int(time_left) % 60
+	timer_label.text = "%02d:%02d" % [minutes, seconds]
+	
+
 # --- WIN FUNCTION ---
 func win_game():
 	if is_dead or is_winner: return
@@ -273,12 +284,18 @@ func win_game():
 	
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
-	var minutes = floor(time_left / 60)
-	var seconds = int(time_left) % 60
+	# --- 1. Calculate Time Taken (Elapsed) ---
+	var taken_min = floor(elapsed_time / 60)
+	var taken_sec = int(elapsed_time) % 60
+	
+	# --- 2. Calculate Time Remaining (Left) ---
+	var left_min = floor(time_left / 60)
+	var left_sec = int(time_left) % 60
 	
 	# Updated text with instructions
 	if win_label:
-		win_label.text = "CONGRATULATIONS!\n\nEscaped with %02d:%02d left!\n\nPress R to Play Again\nPress M for Main Menu" % [minutes, seconds]
+		# We use a multi-line string to show both stats nicely
+		win_label.text = "CONGRATULATIONS!\n\nTime Taken: %02d:%02d\nTime Bonus: %02d:%02d\n\nPress R to Play Again\nPress M for Main Menu" % [taken_min, taken_sec, left_min, left_sec]
 	
 	if win_screen:
 		win_screen.visible = true

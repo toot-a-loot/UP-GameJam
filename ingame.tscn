@@ -1,8 +1,9 @@
-[gd_scene load_steps=15 format=3 uid="uid://bcvlx6vixaf87"]
+[gd_scene load_steps=16 format=3 uid="uid://bcvlx6vixaf87"]
 
 [ext_resource type="Script" uid="uid://23x7pb3jeuci" path="res://entities/enemies/enemy_spawner.gd" id="2_kgmhh"]
 [ext_resource type="PackedScene" uid="uid://dp7lspl41wtxo" path="res://maze/MazeWorld.tscn" id="2_p0uuu"]
 [ext_resource type="PackedScene" uid="uid://dfc8gqtn7kvte" path="res://entities/player/player.tscn" id="2_pu7co"]
+[ext_resource type="PackedScene" uid="uid://dm20eoq33lndu" path="res://maze/Checkpoint.tscn" id="3_ooucj"]
 [ext_resource type="PackedScene" uid="uid://creiyraf2vk0q" path="res://entities/enemies/watcher/watcher.tscn" id="3_pu7co"]
 [ext_resource type="PackedScene" uid="uid://dnqg1ryy6bkjl" path="res://entities/enemies/listener/listener.tscn" id="4_ic5ef"]
 [ext_resource type="PackedScene" uid="uid://gglcskpcdf6j" path="res://entities/enemies/chaser/chaser.tscn" id="5_8g0if"]
@@ -72,6 +73,7 @@ light_energy = 7.045
 
 [node name="MazeWorld" parent="." instance=ExtResource("2_p0uuu")]
 player_scene = ExtResource("2_pu7co")
+checkpoint_scene = ExtResource("3_ooucj")
 
 [node name="EnemySpawner" type="Node" parent="MazeWorld"]
 script = ExtResource("2_kgmhh")
