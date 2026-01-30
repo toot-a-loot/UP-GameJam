@@ -107,12 +107,15 @@ func _spawn_enemies_balanced():
 		var attempts = 0
 		var valid_spawn_found = false
 		
-		while attempts < 10:
+		while attempts < 20:
 			var test_pos = grid_pos
-			test_pos.x += randi_range(-3, 3)
-			test_pos.y += randi_range(-3, 3)
+			# Search a wider area to find rooms or intersections
+			test_pos.x += randi_range(-4, 4)
+			test_pos.y += randi_range(-4, 4)
 			
-			if _is_valid_floor(test_pos) and _is_safe_distance_from_player(test_pos):
+			# CRITICAL CHANGE: Added "not _is_chokepoint(test_pos)"
+			if _is_valid_floor(test_pos) and _is_safe_distance_from_player(test_pos) and not _is_chokepoint(test_pos):
+				
 				if enemy_type == "watcher":
 					var sight_info = _get_watcher_alignment(test_pos)
 					if sight_info.valid:
@@ -125,15 +128,8 @@ func _spawn_enemies_balanced():
 					break
 			attempts += 1
 		
-		if not valid_spawn_found and _is_safe_distance_from_player(grid_pos):
-			if enemy_type == "watcher":
-				var scan_res = _scan_area_for_watcher_spot(grid_pos)
-				if scan_res.valid:
-					_spawn_watcher(scan_res.pos, scan_res.direction, i)
-				else:
-					_spawn_generic(grid_pos, enemy_type, i)
-			else:
-				_spawn_generic(grid_pos, enemy_type, i)
+		if not valid_spawn_found:
+			print("EnemySpawner: Skipped enemy %d (Could not find non-chokepoint spawn)." % i)
 
 func _spawn_watcher(grid_pos: Vector2i, direction: Vector3, index: int):
 	var grid_map = maze_world.get_node("GridMap")
@@ -233,3 +229,14 @@ func _spawn_enemy_at_world(scene, pos, name_str) -> Node:
 	enemy.name = name_str
 	active_enemies.append(enemy)
 	return enemy
+func _is_chokepoint(pos: Vector2i) -> bool:
+	var floor_neighbors = 0
+	
+	var neighbors = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
+	
+	for n in neighbors:
+		var check = pos + n
+		if _is_valid_floor(check):
+			floor_neighbors += 1
+			
+	return floor_neighbors <= 2
