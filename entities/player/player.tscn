@@ -1,6 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://dfc8gqtn7kvte"]
+[gd_scene load_steps=9 format=3 uid="uid://dfc8gqtn7kvte"]
 
 [ext_resource type="Script" uid="uid://baa7flndik5iy" path="res://entities/player/player.gd" id="1_abrql"]
+[ext_resource type="AudioStream" uid="uid://coq05lj6m2mk" path="res://assets/audio/Footsteps_walking.wav" id="2_sglur"]
+[ext_resource type="AudioStream" uid="uid://cmchnwi63a2wh" path="res://assets/audio/Footsteps_ running.wav" id="3_bls4j"]
+[ext_resource type="AudioStream" uid="uid://t46xoc82v2e4" path="res://assets/audio/Breathing_fast.wav" id="4_bls4j"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_symyc"]
 
@@ -98,3 +101,12 @@ label_settings = SubResource("LabelSettings_abrql")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
+
+[node name="walk" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_sglur")
+
+[node name="run" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_bls4j")
+
+[node name="breathing" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_bls4j")
