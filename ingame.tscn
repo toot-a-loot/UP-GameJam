@@ -20,7 +20,7 @@ sky_material = SubResource("ProceduralSkyMaterial_ic5ef")
 
 [sub_resource type="Environment" id="Environment_ooucj"]
 background_mode = 2
-background_energy_multiplier = 0.7
+background_energy_multiplier = 0.9
 sky = SubResource("Sky_8g0if")
 sky_custom_fov = 45.0
 tonemap_mode = 2
