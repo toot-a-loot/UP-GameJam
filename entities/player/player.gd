@@ -25,6 +25,7 @@ var is_winner = false
 @onready var minimap_container = $CanvasLayer/MinimapContainer
 @onready var map_texture_rect = $CanvasLayer/MinimapContainer/MapTexture
 @onready var player_marker = $CanvasLayer/MinimapContainer/MapTexture/PlayerMarker
+@onready var message_label: Label
 
 # Minimap data
 var map_width_cells: float = 21.0
@@ -45,6 +46,22 @@ func _ready():
 	add_to_group("player")
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	
+	# Create the Message Label
+	if not has_node("CanvasLayer/MessageLabel"):
+		message_label = Label.new()
+		message_label.name = "MessageLabel"
+		message_label.text = ""
+		message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		message_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+		message_label.position.y = 100 # Move it down a bit from top
+		message_label.add_theme_font_size_override("font_size", 32)
+		message_label.add_theme_color_override("font_color", Color.YELLOW)
+		message_label.modulate.a = 0.0 # Start invisible
+		$CanvasLayer.add_child(message_label)
+	else:
+		message_label = $CanvasLayer/MessageLabel
 	
 	# Create death screen if it doesn't exist
 	if not has_node("CanvasLayer/DeathScreen"):
@@ -269,10 +286,15 @@ func toggle_pause():
 # --- ADD TIME FUNCTION ---
 func add_time(amount: float):
 	time_left += amount
-	# Update the UI immediately to show the change
+	
+	# Show the popup text!
+	show_message("Checkpoint Reached!\n+%d Seconds" % amount)
+	
+	# (Your existing timer update code...)
 	var minutes = floor(time_left / 60)
 	var seconds = int(time_left) % 60
-	timer_label.text = "%02d:%02d" % [minutes, seconds]
+	if timer_label:
+		timer_label.text = "%02d:%02d" % [minutes, seconds]
 	
 
 # --- WIN FUNCTION ---
@@ -305,3 +327,14 @@ func win_game():
 func return_to_main_menu():
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://ui/MainMenu.tscn")
+	
+	
+func show_message(text: String, duration: float = 2.0):
+	if message_label:
+		message_label.text = text
+		message_label.modulate.a = 1.0 # Make visible
+		
+		# Create a tween to fade it out
+		var tween = create_tween()
+		tween.tween_interval(duration) # Wait
+		tween.tween_property(message_label, "modulate:a", 0.0, 1.0) # Fade out
