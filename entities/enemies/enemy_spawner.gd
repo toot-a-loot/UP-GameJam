@@ -10,7 +10,7 @@ var num_watchers: int = 4
 var num_listeners: int = 4
 var num_chasers: int = 4
 
-@export var min_distance_from_player: float = 20.0
+@export var min_distance_from_player: float = 35.0
 
 #reference to maze
 var maze_world: Node3D
@@ -188,15 +188,22 @@ func _is_safe_distance_from_player(grid_pos: Vector2i) -> bool:
 	var enemy_world_pos = grid_map.map_to_local(Vector3i(grid_pos.x, 0, grid_pos.y))
 	
 	var player_node = get_tree().get_first_node_in_group("player")
-	var player_pos = Vector3.ZERO
-	
-	if player_node:
-		player_pos = player_node.global_position
-	else:
-		player_pos = grid_map.map_to_local(Vector3i(1, 0, 1))
+	var player_pos = player_node.global_position if player_node else Vector3.ZERO
 		
 	var dist = enemy_world_pos.distance_to(player_pos)
-	return dist > min_distance_from_player
+	
+	if dist < min_distance_from_player:
+		return false
+		
+	#dont spawn if the player can literally see them spawn
+	var space_state = maze_world.get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(player_pos + Vector3(0, 1, 0), enemy_world_pos + Vector3(0, 1, 0))
+	var result = space_state.intersect_ray(query)
+	
+	if result.is_empty():
+		return false
+		
+	return true
 
 func _is_valid_floor(pos: Vector2i) -> bool:
 	if pos.x <= 0 or pos.x >= width - 1: return false
