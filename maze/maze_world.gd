@@ -5,6 +5,8 @@ extends Node3D
 @export var base_height: int = 21
 @export var removal_chance: float = 0.1
 @export var player_scene: PackedScene 
+@export var checkpoint_scene: PackedScene
+@export var checkpoints_per_level: int = 3
 
 # --- Nodes ---
 @onready var grid_map: GridMap = $GridMap
@@ -64,6 +66,8 @@ func start_level(level_number: int):
 	
 	# 8. PLACE EXIT TRIGGER
 	spawn_exit_trigger(exit_coords)
+	
+	spawn_checkpoints()
 	
 	# 9. SPAWN ENEMIES - Wait for navigation to be ready first
 	await get_tree().create_timer(0.5).timeout
@@ -292,3 +296,67 @@ func get_optimal_path(from: Vector2i, to: Vector2i) -> Array:
 	if astar:
 		return astar.get_id_path(from, to)
 	return []
+
+func spawn_checkpoints():
+	if not checkpoint_scene: return
+	
+	print("Spawning Checkpoints at Fixed Locations...")
+
+	# --- DEFINE YOUR SPOTS HERE ---
+	# You can add as many as you want to this list.
+	var desired_locations = [
+		Vector2i(current_width / 2, current_height / 2), # 1. The Exact Center
+		Vector2i(current_width - 3, 3),                 # 2. Top-Right Corner
+		Vector2i(current_width - 5, current_height - 5)               # 3. Bottom-Left Corner
+	]
+	
+	for target in desired_locations:
+		# Use our new helper to find the closest valid floor to that spot
+		var valid_spot = find_nearest_floor(target)
+		
+		# Instantiate the checkpoint
+		var cp = checkpoint_scene.instantiate()
+		add_child(cp)
+		
+		# Place it in the world
+		var world_pos = grid_map.map_to_local(Vector3i(valid_spot.x, 0, valid_spot.y))
+		world_pos.y += 1.0
+		cp.global_position = world_pos
+
+func find_nearest_floor(target_pos: Vector2i) -> Vector2i:
+	# 1. Sanity Check: Is the target inside the map?
+	if target_pos.x <= 0 or target_pos.x >= current_width - 1:
+		target_pos.x = clamp(target_pos.x, 1, current_width - 2)
+	if target_pos.y <= 0 or target_pos.y >= current_height - 1:
+		target_pos.y = clamp(target_pos.y, 1, current_height - 2)
+
+	# 2. Search Logic (Breadth-First Search)
+	# We start at the target and spiral out until we hit a floor (0)
+	var queue: Array[Vector2i] = [target_pos]
+	var visited = {target_pos: true}
+	var attempts = 0
+	
+	while queue.size() > 0 and attempts < 1000:
+		var current = queue.pop_front()
+		attempts += 1
+		
+		# If we found a floor (0), Stop! Return this spot.
+		if map_data[current.x][current.y] == 0:
+			return current
+			
+		# Otherwise, check neighbors (Up, Down, Left, Right)
+		var neighbors = [
+			Vector2i(0, 1), Vector2i(0, -1), 
+			Vector2i(1, 0), Vector2i(-1, 0)
+		]
+		
+		for n in neighbors:
+			var next_cell = current + n
+			# Keep within bounds
+			if next_cell.x > 0 and next_cell.x < current_width - 1 and \
+			   next_cell.y > 0 and next_cell.y < current_height - 1:
+				if not visited.has(next_cell):
+					visited[next_cell] = true
+					queue.append(next_cell)
+	
+	return Vector2i(1, 1) # Fallback to start if something goes wrong
