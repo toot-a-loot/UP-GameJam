@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://bcvlx6vixaf87"]
+[gd_scene load_steps=18 format=3 uid="uid://bcvlx6vixaf87"]
 
 [ext_resource type="Script" uid="uid://23x7pb3jeuci" path="res://entities/enemies/enemy_spawner.gd" id="2_kgmhh"]
 [ext_resource type="PackedScene" uid="uid://dp7lspl41wtxo" path="res://maze/MazeWorld.tscn" id="2_p0uuu"]
@@ -9,6 +9,8 @@
 [ext_resource type="PackedScene" uid="uid://gglcskpcdf6j" path="res://entities/enemies/chaser/chaser.tscn" id="5_8g0if"]
 [ext_resource type="Shader" uid="uid://dwhqqyst7tpfr" path="res://shaders/post_processing.gdshader" id="7_ic5ef"]
 [ext_resource type="Shader" uid="uid://c8qkcmanwuo1w" path="res://shaders/CRT.gdshader" id="8_8g0if"]
+[ext_resource type="AudioStream" uid="uid://da6slwo28cell" path="res://assets/audio/ingameBGM.wav" id="10_phpej"]
+[ext_resource type="Script" uid="uid://dujiwatx1a3rg" path="res://assets/audio/main_menu_BGM.gd" id="11_boc44"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ic5ef"]
 sky_top_color = Color(0.23394024, 0.2857057, 0.35467437, 1)
@@ -96,3 +98,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="BGM" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("10_phpej")
+volume_db = -5.0
+script = ExtResource("11_boc44")

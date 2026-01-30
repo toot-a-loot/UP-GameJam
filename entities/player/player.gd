@@ -16,6 +16,7 @@ var is_game_active = true
 var is_dead = false
 var is_winner = false 
 
+
 # Nodes
 @onready var head = $Head
 @onready var camera = $Head/Camera3D
@@ -37,6 +38,14 @@ var cell_size_world: float = 7.0 # grid size
 @onready var win_screen: ColorRect
 @onready var win_label: Label
 @onready var death_label: Label
+
+# SFX
+@onready var walk: AudioStreamPlayer = $walk
+@onready var run: AudioStreamPlayer = $run
+@onready var breathing: AudioStreamPlayer = $breathing
+var breathing_tween: Tween
+var breathing_run_timer = 0.0
+var default_breathing_volume = -5.0 #
 
 # STATE VARIABLE
 var is_covering_eyes = false 
@@ -154,15 +163,49 @@ func _physics_process(delta):
 		set_state_moving()
 		
 		var current_speed = walk_speed
+		
+		var is_running = Input.is_action_pressed("run")
+		
 		if Input.is_action_pressed("run"):
 			current_speed = run_speed
 		
 		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		if input_dir != Vector2.ZERO:
+			if is_running:
+				# 1. Count up time
+				breathing_run_timer += delta 
+				
+				if not run.playing:
+					run.play()
+				
+				# 2. Only play breathing if timer > 2.0 seconds
+				if breathing_run_timer >= 2.0 and not breathing.playing:
+					if breathing_tween: breathing_tween.kill()
+				
+					breathing.volume_db = default_breathing_volume 
+					breathing.play()
+					
+				walk.stop()
+			else:
+				# Reset timer and stop breathing if we switch to walking
+				breathing_run_timer = 0.0
+				stop_breathing_softly()
+				
+				if not walk.playing:
+					walk.play()
+				run.stop()
+
 			var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 			velocity.x = direction.x * current_speed
 			velocity.z = direction.z * current_speed
 		else:
+			# Reset timer and stop breathing if we stop moving completely
+			breathing_run_timer = 0.0
+			stop_breathing_softly()
+			
+			walk.stop()
+			run.stop()
+			
 			velocity.x = move_toward(velocity.x, 0, current_speed)
 			velocity.z = move_toward(velocity.z, 0, current_speed)
 			
@@ -305,3 +348,21 @@ func win_game():
 func return_to_main_menu():
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://ui/MainMenu.tscn")
+
+func stop_breathing_softly():
+	# If it's not playing, we don't need to fade
+	if not breathing.playing:
+		return
+		
+	# If we are already fading out (tween exists and is running), don't start a new one
+	if breathing_tween and breathing_tween.is_valid():
+		return
+
+	# Create a new tween
+	breathing_tween = create_tween()
+	
+	# 1. Fade volume to -80 dB (silence) over 1.0 second
+	breathing_tween.tween_property(breathing, "volume_db", -80.0, 8.0)
+	
+	# 2. When the fade is done, actually stop the player
+	breathing_tween.tween_callback(breathing.stop)
