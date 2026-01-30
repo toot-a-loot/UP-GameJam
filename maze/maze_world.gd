@@ -75,7 +75,7 @@ func start_level(level_number: int):
 	
 	#spawn enemies, but wait for nav to be ready
 	await get_tree().create_timer(0.5).timeout
-	#spawn_enemies_for_level()
+	spawn_enemies_for_level()
 
 func spawn_enemies_for_level():
 	if has_node("EnemySpawner"):

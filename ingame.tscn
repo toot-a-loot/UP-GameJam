@@ -9,8 +9,8 @@
 [ext_resource type="PackedScene" uid="uid://gglcskpcdf6j" path="res://entities/enemies/chaser/chaser.tscn" id="5_8g0if"]
 [ext_resource type="Shader" uid="uid://dwhqqyst7tpfr" path="res://shaders/post_processing.gdshader" id="7_ic5ef"]
 [ext_resource type="Shader" uid="uid://c8qkcmanwuo1w" path="res://shaders/CRT.gdshader" id="8_8g0if"]
-[ext_resource type="AudioStream" uid="uid://da6slwo28cell" path="res://assets/audio/ingameBGM.wav" id="10_phpej"]
-[ext_resource type="Script" uid="uid://dujiwatx1a3rg" path="res://assets/audio/main_menu_BGM.gd" id="11_boc44"]
+[ext_resource type="AudioStream" uid="uid://bsdijnvog100v" path="res://assets/audio/ingameBGM.wav" id="10_phpej"]
+[ext_resource type="Script" path="res://assets/audio/main_menu_BGM.gd" id="11_boc44"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ic5ef"]
 sky_top_color = Color(0.23394024, 0.2857057, 0.35467437, 1)
