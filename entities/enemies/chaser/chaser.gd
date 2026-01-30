@@ -115,7 +115,7 @@ func _start_chase(target_pos: Vector3):
 	if not is_chasing:
 		is_chasing = true
 		is_investigating = false
-		speed = 7.0  # Chasing speed
+		speed = 10.0  # Chasing speed
 	
 	set_chase_target(target_pos, true)  # true = direct chase
 

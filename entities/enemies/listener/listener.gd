@@ -4,25 +4,25 @@ class_name Listener
 # listener enemy can hear but cannot see, faster than player, detects if player is moving(footsteps), wanders around when not chasing
 
 #hearing settings
-@export var hearing_radius: float = 12.0
-@export var memory_duration: float = 5.0 #how long to chase last known location
+@export var hearing_radius: float = 20.0
+@export var memory_duration: float = 0.08 #how long to chase last known location
 
 # wandering settings
 @export var wander_distance_min: float = 10.0
 @export var wander_distance_max: float = 25.0
-@export var wander_pause_chance: float = 0.2 #20% chance mu pause
+@export var wander_pause_chance: float = 1.0
 @export var wander_pause_duration: float = 2.0
 
 # stamina/tired system
-@export var max_chase_duration: float = 4.0 # how long can chase before tired
-@export var tired_duration: float = 2.0 # how long stunned when tired
+@export var max_chase_duration: float = 3.5 # how long can chase before tired
+@export var tired_duration: float = 1.5 # how long stunned when tired
 
 #nodes
 @onready var hearing_area: Area3D = $HearingArea
 @onready var footstep_sound: AudioStreamPlayer3D = $FootstepSound
 
 #footstep
-@export var chase_speed: float = 14.0
+@export var chase_speed: float = 15.5
 @export var walk_speed: float = 6.0
 @export var footstep_chase_sound: AudioStream
 @export var footstep_walk_sound: AudioStream

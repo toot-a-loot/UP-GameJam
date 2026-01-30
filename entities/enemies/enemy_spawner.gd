@@ -50,7 +50,7 @@ func start_spawning(data: Array, w: int, h: int, grid_size: float, level: int = 
 func _calculate_enemy_counts_for_level(level: int):
 	match level:
 		1:
-			num_watchers = 4; num_listeners = 4; num_chasers = 4
+			num_watchers = 0; num_listeners = 0; num_chasers = 10
 		2:
 			num_watchers = 7; num_listeners = 7; num_chasers = 7
 		3:
